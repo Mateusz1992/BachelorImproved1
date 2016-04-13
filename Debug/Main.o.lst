@@ -1,0 +1,459 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m4
+   3              		.eabi_attribute 27, 3
+   4              		.fpu fpv4-sp-d16
+   5              		.eabi_attribute 20, 1
+   6              		.eabi_attribute 21, 1
+   7              		.eabi_attribute 23, 3
+   8              		.eabi_attribute 24, 1
+   9              		.eabi_attribute 25, 1
+  10              		.eabi_attribute 26, 1
+  11              		.eabi_attribute 30, 6
+  12              		.eabi_attribute 34, 1
+  13              		.eabi_attribute 18, 4
+  14              		.thumb
+  15              		.file	"Main.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.comm	TimerId,4,4
+  20              		.comm	Status,4,4
+  21              		.comm	WriteTimerId,4,4
+  22              		.comm	WriteTimerStatus,4,4
+  23              		.comm	TimerIdReadBytes,4,4
+  24              		.comm	StatusReadBytes,4,4
+  25              		.comm	settings,40,4
+  26              		.comm	gBias,12,4
+  27              		.comm	aBias,12,4
+  28              		.comm	mBias,12,4
+  29              		.comm	gBiasRaw,6,4
+  30              		.comm	aBiasRaw,6,4
+  31              		.comm	mBiasRaw,6,4
+  32              		.comm	_autoCalc,1,1
+  33              		.comm	_mAddress,1,1
+  34              		.comm	_xgAddress,1,1
+  35              		.comm	gRes,4,4
+  36              		.comm	aRes,4,4
+  37              		.comm	mRes,4,4
+  38              		.comm	gx,2,2
+  39              		.comm	gy,2,2
+  40              		.comm	gz,2,2
+  41              		.comm	ax,2,2
+  42              		.comm	ay,2,2
+  43              		.comm	az,2,2
+  44              		.comm	mx,2,2
+  45              		.comm	my,2,2
+  46              		.comm	mz,2,2
+  47              		.comm	temperature,2,2
+  48              		.section	.text.check,"ax",%progbits
+  49              		.align	2
+  50              		.global	check
+  51              		.thumb
+  52              		.thumb_func
+  54              	check:
+  55              	.LFB117:
+  56              		.file 1 "../Main.c"
+   1:../Main.c     **** /*
+   2:../Main.c     ****  * Main.c
+   3:../Main.c     ****  *
+   4:../Main.c     ****  *  Created on: 12-02-2016
+   5:../Main.c     ****  *      Author: Mateusz
+   6:../Main.c     ****  */
+   7:../Main.c     **** 
+   8:../Main.c     **** #include <DAVE3.h>			//Declarations from DAVE3 Code Generation (includes SFR declaration)
+   9:../Main.c     **** 
+  10:../Main.c     **** #include "BluetoothDriver.h"
+  11:../Main.c     **** #include "timerFunctions.h"
+  12:../Main.c     **** #include "LSM9DS1_Driver.h"
+  13:../Main.c     **** #include <string.h>
+  14:../Main.c     **** #include "SendMeasurementsToBt.h"
+  15:../Main.c     **** #include "TSL2561.h"
+  16:../Main.c     **** 
+  17:../Main.c     **** void timerHandlerSendMessage(void *T);
+  18:../Main.c     **** 
+  19:../Main.c     **** extern char device[20];
+  20:../Main.c     **** 
+  21:../Main.c     **** /*void FIFO_Receive_Int_Handler(void)
+  22:../Main.c     **** {
+  23:../Main.c     **** 	int kurde = 0;
+  24:../Main.c     **** 	uint16_t DataReceive1 = 0;
+  25:../Main.c     **** 	I2C001_ReadData(&I2C001_Handle0,&DataReceive1);
+  26:../Main.c     **** }*/
+  27:../Main.c     **** 
+  28:../Main.c     **** void check(void)
+  29:../Main.c     **** {
+  57              		.loc 1 29 0
+  58              		.cfi_startproc
+  59              		@ args = 0, pretend = 0, frame = 0
+  60              		@ frame_needed = 1, uses_anonymous_args = 0
+  61 0000 80B5     		push	{r7, lr}
+  62              	.LCFI0:
+  63              		.cfi_def_cfa_offset 8
+  64              		.cfi_offset 7, -8
+  65              		.cfi_offset 14, -4
+  66 0002 00AF     		add	r7, sp, #0
+  67              	.LCFI1:
+  68              		.cfi_def_cfa_register 7
+  30:../Main.c     **** 	if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_RSIF))
+  69              		.loc 1 30 0
+  70 0004 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+  71 0008 C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+  72 000c 4FF00001 		mov	r1, #0
+  73 0010 FFF7FEFF 		bl	I2C001_GetFlagStatus
+  74 0014 0346     		mov	r3, r0
+  75 0016 032B     		cmp	r3, #3
+  76 0018 6AD0     		beq	.L1
+  31:../Main.c     **** 	{
+  32:../Main.c     **** 		;
+  33:../Main.c     **** 	}
+  34:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_DLIF))
+  77              		.loc 1 34 0
+  78 001a 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+  79 001e C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+  80 0022 4FF00101 		mov	r1, #1
+  81 0026 FFF7FEFF 		bl	I2C001_GetFlagStatus
+  82 002a 0346     		mov	r3, r0
+  83 002c 032B     		cmp	r3, #3
+  84 002e 5FD0     		beq	.L1
+  35:../Main.c     **** 	{
+  36:../Main.c     **** 		;
+  37:../Main.c     **** 	}
+  38:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_TSIF))
+  85              		.loc 1 38 0
+  86 0030 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+  87 0034 C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+  88 0038 4FF00201 		mov	r1, #2
+  89 003c FFF7FEFF 		bl	I2C001_GetFlagStatus
+  90 0040 0346     		mov	r3, r0
+  91 0042 032B     		cmp	r3, #3
+  92 0044 54D0     		beq	.L1
+  39:../Main.c     **** 	{
+  40:../Main.c     **** 		;
+  41:../Main.c     **** 	}
+  42:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_TBIF))
+  93              		.loc 1 42 0
+  94 0046 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+  95 004a C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+  96 004e 4FF00301 		mov	r1, #3
+  97 0052 FFF7FEFF 		bl	I2C001_GetFlagStatus
+  98 0056 0346     		mov	r3, r0
+  99 0058 032B     		cmp	r3, #3
+ 100 005a 49D0     		beq	.L1
+  43:../Main.c     **** 	{
+  44:../Main.c     **** 		;
+  45:../Main.c     **** 	}
+  46:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_RIF))
+ 101              		.loc 1 46 0
+ 102 005c 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+ 103 0060 C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+ 104 0064 4FF00401 		mov	r1, #4
+ 105 0068 FFF7FEFF 		bl	I2C001_GetFlagStatus
+ 106 006c 0346     		mov	r3, r0
+ 107 006e 032B     		cmp	r3, #3
+ 108 0070 3ED0     		beq	.L1
+  47:../Main.c     **** 	{
+  48:../Main.c     **** 		;
+  49:../Main.c     **** 	}
+  50:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_WRONG_TDF))
+ 109              		.loc 1 50 0
+ 110 0072 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+ 111 0076 C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+ 112 007a 4FF00501 		mov	r1, #5
+ 113 007e FFF7FEFF 		bl	I2C001_GetFlagStatus
+ 114 0082 0346     		mov	r3, r0
+ 115 0084 032B     		cmp	r3, #3
+ 116 0086 33D0     		beq	.L1
+  51:../Main.c     **** 	{
+  52:../Main.c     **** 		;
+  53:../Main.c     **** 	}
+  54:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_NACK_RECEIVED))
+ 117              		.loc 1 54 0
+ 118 0088 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+ 119 008c C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+ 120 0090 4FF00601 		mov	r1, #6
+ 121 0094 FFF7FEFF 		bl	I2C001_GetFlagStatus
+ 122 0098 0346     		mov	r3, r0
+ 123 009a 032B     		cmp	r3, #3
+ 124 009c 28D0     		beq	.L1
+  55:../Main.c     **** 	{
+  56:../Main.c     **** 		;
+  57:../Main.c     **** 	}
+  58:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_SRBI))
+ 125              		.loc 1 58 0
+ 126 009e 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+ 127 00a2 C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+ 128 00a6 4FF00701 		mov	r1, #7
+ 129 00aa FFF7FEFF 		bl	I2C001_GetFlagStatus
+ 130 00ae 0346     		mov	r3, r0
+ 131 00b0 032B     		cmp	r3, #3
+ 132 00b2 1DD0     		beq	.L1
+  59:../Main.c     **** 	{
+  60:../Main.c     **** 		int a;
+  61:../Main.c     **** 	}
+  62:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_RBERI))
+ 133              		.loc 1 62 0
+ 134 00b4 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+ 135 00b8 C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+ 136 00bc 4FF00801 		mov	r1, #8
+ 137 00c0 FFF7FEFF 		bl	I2C001_GetFlagStatus
+ 138 00c4 0346     		mov	r3, r0
+ 139 00c6 032B     		cmp	r3, #3
+ 140 00c8 12D0     		beq	.L1
+  63:../Main.c     **** 	{
+  64:../Main.c     **** 		int b;
+  65:../Main.c     **** 	}
+  66:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_STBI))
+ 141              		.loc 1 66 0
+ 142 00ca 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+ 143 00ce C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+ 144 00d2 4FF00901 		mov	r1, #9
+ 145 00d6 FFF7FEFF 		bl	I2C001_GetFlagStatus
+ 146 00da 0346     		mov	r3, r0
+ 147 00dc 032B     		cmp	r3, #3
+ 148 00de 07D0     		beq	.L1
+  67:../Main.c     **** 	{
+  68:../Main.c     **** 		int c;
+  69:../Main.c     **** 	}
+  70:../Main.c     **** 	else if(I2C001_SET == I2C001_GetFlagStatus(&I2C001_Handle0,I2C001_FLAG_TBERI))
+ 149              		.loc 1 70 0
+ 150 00e0 40F20000 		movw	r0, #:lower16:I2C001_Handle0
+ 151 00e4 C0F20000 		movt	r0, #:upper16:I2C001_Handle0
+ 152 00e8 4FF00A01 		mov	r1, #10
+ 153 00ec FFF7FEFF 		bl	I2C001_GetFlagStatus
+ 154              	.L1:
+  71:../Main.c     **** 	{
+  72:../Main.c     **** 		int d;
+  73:../Main.c     **** 	}
+  74:../Main.c     **** }
+ 155              		.loc 1 74 0
+ 156 00f0 80BD     		pop	{r7, pc}
+ 157              		.cfi_endproc
+ 158              	.LFE117:
+ 160              		.comm	gain,4,4
+ 161              		.comm	time,1,1
+ 162              		.comm	ms,4,4
+ 163 00f2 00BF     		.section	.text.main,"ax",%progbits
+ 164              		.align	2
+ 165              		.global	main
+ 166              		.thumb
+ 167              		.thumb_func
+ 169              	main:
+ 170              	.LFB118:
+  75:../Main.c     **** 
+  76:../Main.c     **** int gain;
+  77:../Main.c     **** unsigned char time;
+  78:../Main.c     **** unsigned int ms;
+  79:../Main.c     **** 
+  80:../Main.c     **** int main(void)
+  81:../Main.c     **** {
+ 171              		.loc 1 81 0
+ 172              		.cfi_startproc
+ 173              		@ args = 0, pretend = 0, frame = 8
+ 174              		@ frame_needed = 1, uses_anonymous_args = 0
+ 175 0000 80B5     		push	{r7, lr}
+ 176              	.LCFI2:
+ 177              		.cfi_def_cfa_offset 8
+ 178              		.cfi_offset 7, -8
+ 179              		.cfi_offset 14, -4
+ 180 0002 82B0     		sub	sp, sp, #8
+ 181              	.LCFI3:
+ 182              		.cfi_def_cfa_offset 16
+ 183 0004 00AF     		add	r7, sp, #0
+ 184              	.LCFI4:
+ 185              		.cfi_def_cfa_register 7
+  82:../Main.c     **** //	status_t status;		// Declaration of return variable for DAVE3 APIs (toggle comment if required)
+  83:../Main.c     **** 	int siema = 0;
+ 186              		.loc 1 83 0
+ 187 0006 4FF00003 		mov	r3, #0
+ 188 000a 7B60     		str	r3, [r7, #4]
+  84:../Main.c     **** 
+  85:../Main.c     **** 	DAVE_Init();			// Initialization of DAVE Apps
+ 189              		.loc 1 85 0
+ 190 000c FFF7FEFF 		bl	DAVE_Init
+  86:../Main.c     **** 
+  87:../Main.c     **** 	initLSM9DS1();
+ 191              		.loc 1 87 0
+ 192 0010 FFF7FEFF 		bl	initLSM9DS1
+  88:../Main.c     **** 	calibrate(TRUE);
+ 193              		.loc 1 88 0
+ 194 0014 4FF00100 		mov	r0, #1
+ 195 0018 FFF7FEFF 		bl	calibrate
+  89:../Main.c     **** 	resetConnectionIndicator();
+ 196              		.loc 1 89 0
+ 197 001c FFF7FEFF 		bl	resetConnectionIndicator
+  90:../Main.c     **** 
+  91:../Main.c     **** 	initBluetooth();
+ 198              		.loc 1 91 0
+ 199 0020 FFF7FEFF 		bl	initBluetooth
+  92:../Main.c     **** 	//startMeasurements();
+  93:../Main.c     **** 
+  94:../Main.c     **** 	begin1();
+ 200              		.loc 1 94 0
+ 201 0024 FFF7FEFF 		bl	begin1
+  95:../Main.c     **** 
+  96:../Main.c     **** 	gain = 0;
+ 202              		.loc 1 96 0
+ 203 0028 40F20003 		movw	r3, #:lower16:gain
+ 204 002c C0F20003 		movt	r3, #:upper16:gain
+ 205 0030 4FF00002 		mov	r2, #0
+ 206 0034 1A60     		str	r2, [r3, #0]
+  97:../Main.c     **** 	time = 2;
+ 207              		.loc 1 97 0
+ 208 0036 40F20003 		movw	r3, #:lower16:time
+ 209 003a C0F20003 		movt	r3, #:upper16:time
+ 210 003e 4FF00202 		mov	r2, #2
+ 211 0042 1A70     		strb	r2, [r3, #0]
+  98:../Main.c     **** 
+  99:../Main.c     **** 
+ 100:../Main.c     **** 	setTiming1(gain, time, &ms);
+ 212              		.loc 1 100 0
+ 213 0044 40F20003 		movw	r3, #:lower16:gain
+ 214 0048 C0F20003 		movt	r3, #:upper16:gain
+ 215 004c 1A68     		ldr	r2, [r3, #0]
+ 216 004e 40F20003 		movw	r3, #:lower16:time
+ 217 0052 C0F20003 		movt	r3, #:upper16:time
+ 218 0056 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 219 0058 1046     		mov	r0, r2
+ 220 005a 1946     		mov	r1, r3
+ 221 005c 40F20002 		movw	r2, #:lower16:ms
+ 222 0060 C0F20002 		movt	r2, #:upper16:ms
+ 223 0064 FFF7FEFF 		bl	setTiming1
+ 101:../Main.c     **** 
+ 102:../Main.c     **** 	setPowerUp();
+ 224              		.loc 1 102 0
+ 225 0068 FFF7FEFF 		bl	setPowerUp
+ 226              	.L4:
+ 103:../Main.c     **** 
+ 104:../Main.c     **** 	while(1)
+ 105:../Main.c     **** 	{
+ 106:../Main.c     **** 		sendMeasurementsToBt();
+ 227              		.loc 1 106 0 discriminator 1
+ 228 006c FFF7FEFF 		bl	sendMeasurementsToBt
+ 107:../Main.c     **** 		manageConnection();
+ 229              		.loc 1 107 0 discriminator 1
+ 230 0070 FFF7FEFF 		bl	manageConnection
+ 108:../Main.c     **** 
+ 109:../Main.c     **** 		check();
+ 231              		.loc 1 109 0 discriminator 1
+ 232 0074 FFF7FEFF 		bl	check
+ 110:../Main.c     **** 
+ 111:../Main.c     **** 
+ 112:../Main.c     **** 	}
+ 233              		.loc 1 112 0 discriminator 1
+ 234 0078 F8E7     		b	.L4
+ 235              		.cfi_endproc
+ 236              	.LFE118:
+ 238 007a 00BF     		.text
+ 239              	.Letext0:
+ 240              		.file 2 "c:\\dave-3.1.10\\arm-gcc\\bin\\../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/i
+ 241              		.file 3 "C:\\DAVE-3.1.10\\eclipse\\/../CMSIS/Infineon/XMC4500_series/Include/XMC4500.h"
+ 242              		.file 4 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 243              		.file 5 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 244              		.file 6 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 245              		.file 7 "../LSM9DS1_Types.h"
+ 246              		.file 8 "C:\\DAVE-3.1.10\\eclipse\\/../CMSIS/Include/core_cm4.h"
+ 247              		.file 9 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 248              		.file 10 "../LSM9DS1_Driver.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Main.c
+                            *COM*:00000004 TimerId
+                            *COM*:00000004 Status
+                            *COM*:00000004 WriteTimerId
+                            *COM*:00000004 WriteTimerStatus
+                            *COM*:00000004 TimerIdReadBytes
+                            *COM*:00000004 StatusReadBytes
+                            *COM*:00000028 settings
+                            *COM*:0000000c gBias
+                            *COM*:0000000c aBias
+                            *COM*:0000000c mBias
+                            *COM*:00000006 gBiasRaw
+                            *COM*:00000006 aBiasRaw
+                            *COM*:00000006 mBiasRaw
+                            *COM*:00000001 _autoCalc
+                            *COM*:00000001 _mAddress
+                            *COM*:00000001 _xgAddress
+                            *COM*:00000004 gRes
+                            *COM*:00000004 aRes
+                            *COM*:00000004 mRes
+                            *COM*:00000002 gx
+                            *COM*:00000002 gy
+                            *COM*:00000002 gz
+                            *COM*:00000002 ax
+                            *COM*:00000002 ay
+                            *COM*:00000002 az
+                            *COM*:00000002 mx
+                            *COM*:00000002 my
+                            *COM*:00000002 mz
+                            *COM*:00000002 temperature
+C:\Users\Mateusz\AppData\Local\Temp\cchduWwf.s:49     .text.check:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\cchduWwf.s:54     .text.check:00000000 check
+                            *COM*:00000004 gain
+                            *COM*:00000001 time
+                            *COM*:00000004 ms
+C:\Users\Mateusz\AppData\Local\Temp\cchduWwf.s:164    .text.main:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\cchduWwf.s:169    .text.main:00000000 main
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.35166846b5321d4273ad8c4248893ac3
+                           .group:00000000 wm4.XMC4500.h.45.215f4b8c79f46c7645c15373868d08c0
+                           .group:00000000 wm4.core_cm4.h.47.41af406cb4cda82c972f112a9cd0a024
+                           .group:00000000 wm4.newlib.h.8.a9901dc52d1357e3e94003403d43f8b5
+                           .group:00000000 wm4.features.h.22.b72b3baab2bb2eab3661375590100b6b
+                           .group:00000000 wm4.config.h.193.5fb8ef056cdff92dec3dee9552839d8c
+                           .group:00000000 wm4._ansi.h.23.7aefdac4826acebbfc9f3822a0aeb14c
+                           .group:00000000 wm4.stdint.h.20.54ad762faa59e3c05491630641c8d8bf
+                           .group:00000000 wm4.core_cmInstr.h.39.3d3d1b4a79aef37532666dc6ee87c6ac
+                           .group:00000000 wm4.core_cm4_simd.h.43.b5d1d38735af6366227b4256d330cf13
+                           .group:00000000 wm4.core_cm4.h.178.e5ef5ce66d198d7f00f9d0076e267c41
+                           .group:00000000 wm4.system_XMC4500.h.29.827f68baa362c84f2abae4ab67dde7c9
+                           .group:00000000 wm4.XMC4500.h.198.8e022f279ff353ed081df898dc7b9cf3
+                           .group:00000000 wm4.stddef.h.40.50cf36416e06376af8a9dca28536f2e4
+                           .group:00000000 wm4.types.h.60.e75c47576398c648cdcf9000ace5e3d8
+                           .group:00000000 wm4.MULTIPLEXER.h.46.4a863fbae1c79f0db26da3ce2dc30d02
+                           .group:00000000 wm4.CCU8PWMLIB.h.74.725ec81203769525cc7a424597055f47
+                           .group:00000000 wm4.MOTORLIB.h.62.951091d95913dd2ff36d761323a1771d
+                           .group:00000000 wm4.DBG001.h.116.d6d9e7459a0faa3905c97c1d2edb339d
+                           .group:00000000 wm4.uc_id.h.35.fa57ecd9f559d2767f56c96da2848c12
+                           .group:00000000 wm4.CLK001_Const.h.50.e5e9c2ddc89f4cc9e7b93e9648fa94e4
+                           .group:00000000 wm4.CLK001_Conf.h.81.82a8db895dc146da001475dd68223522
+                           .group:00000000 wm4.Usic.h.58.a3e6728d1d20f5a5e52f483a06098d7b
+                           .group:00000000 wm4.I2C001.h.97.5277d52889d6c741e048ea45ee1277b5
+                           .group:00000000 wm4.I2C001_Conf.h.58.8dc4f48d59c07ab7aabfa000634f20d6
+                           .group:00000000 wm4.IO004.h.53.442ea5eb47ad9eedc675253aa35f3107
+                           .group:00000000 wm4.NVIC002_Conf.h.63.4cb383ec1dc83a7d3971985af232fba2
+                           .group:00000000 wm4.SYSTM001.h.64.6ecb31c49bc3e7691644fdcdfc11b5cd
+                           .group:00000000 wm4.UART001_Conf.h.53.25f1a2c84c9f0e515b40b3ac3580460d
+                           .group:00000000 wm4.stdlib.h.13.603ed7eb09a1561ab06840b7c0fcff58
+                           .group:00000000 wm4.stddef.h.161.e50ff8a9d5d1abbc15641da28ac571bf
+                           .group:00000000 wm4._default_types.h.6.5e12cd604db8ce00b62bb2f02708eaf3
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.161.c6104a0666cf681b6269ddc9b4f516d4
+                           .group:00000000 wm4.reent.h.16.9e42f0e588b85e70b2bf6572af57ce64
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.53.c69c7609933ff56d59c757cec2d13230
+                           .group:00000000 wm4.LSM9DS1_Driver.h.9.225085f752270af24a0df342ed7d3479
+                           .group:00000000 wm4.LSM9DS1_Registers.h.9.72af380d6da01de607f77d245bf32825
+                           .group:00000000 wm4.stdio.h.27.f2ac352bab34f31f9f478442827b2ba6
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.1f2c84c0d57dd52dd9936095d9ac218e
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.dfdea6580b080784d08faace69b6ed76
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.math.h.35.cc9264b0ced3bd063c5784e64e89cf51
+                           .group:00000000 wm4.TSL2561.h.18.9618d5d7f1dcc1b3cd41935b7a1e99d8
+
+UNDEFINED SYMBOLS
+I2C001_Handle0
+I2C001_GetFlagStatus
+DAVE_Init
+initLSM9DS1
+calibrate
+resetConnectionIndicator
+initBluetooth
+begin1
+setTiming1
+setPowerUp
+sendMeasurementsToBt
+manageConnection

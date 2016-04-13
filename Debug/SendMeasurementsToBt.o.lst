@@ -1,0 +1,2383 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m4
+   3              		.eabi_attribute 27, 3
+   4              		.fpu fpv4-sp-d16
+   5              		.eabi_attribute 20, 1
+   6              		.eabi_attribute 21, 1
+   7              		.eabi_attribute 23, 3
+   8              		.eabi_attribute 24, 1
+   9              		.eabi_attribute 25, 1
+  10              		.eabi_attribute 26, 1
+  11              		.eabi_attribute 30, 6
+  12              		.eabi_attribute 34, 1
+  13              		.eabi_attribute 18, 4
+  14              		.thumb
+  15              		.file	"SendMeasurementsToBt.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.comm	TimerId,4,4
+  20              		.comm	Status,4,4
+  21              		.comm	WriteTimerId,4,4
+  22              		.comm	WriteTimerStatus,4,4
+  23              		.comm	TimerIdReadBytes,4,4
+  24              		.comm	StatusReadBytes,4,4
+  25              		.comm	settings,40,4
+  26              		.comm	gBias,12,4
+  27              		.comm	aBias,12,4
+  28              		.comm	mBias,12,4
+  29              		.comm	gBiasRaw,6,4
+  30              		.comm	aBiasRaw,6,4
+  31              		.comm	mBiasRaw,6,4
+  32              		.comm	_autoCalc,1,1
+  33              		.comm	_mAddress,1,1
+  34              		.comm	_xgAddress,1,1
+  35              		.comm	gRes,4,4
+  36              		.comm	aRes,4,4
+  37              		.comm	mRes,4,4
+  38              		.comm	gx,2,2
+  39              		.comm	gy,2,2
+  40              		.comm	gz,2,2
+  41              		.comm	ax,2,2
+  42              		.comm	ay,2,2
+  43              		.comm	az,2,2
+  44              		.comm	mx,2,2
+  45              		.comm	my,2,2
+  46              		.comm	mz,2,2
+  47              		.comm	temperature,2,2
+  48              		.comm	device,20,4
+  49              		.global	turnedOn
+  50              		.bss
+  51              		.align	2
+  54              	turnedOn:
+  55 0000 00000000 		.space	4
+  56              		.comm	xAxis,10,4
+  57              		.comm	yAxis,10,4
+  58              		.comm	zAxis,10,4
+  59              		.comm	xAxisf,30,4
+  60              		.comm	yAxisf,30,4
+  61              		.comm	zAxisf,30,4
+  62              		.comm	accX,20,4
+  63              		.comm	accY,20,4
+  64              		.comm	accZ,20,4
+  65              		.comm	gyrX,20,4
+  66              		.comm	gyrY,20,4
+  67              		.comm	gyrZ,20,4
+  68              		.comm	magX,20,4
+  69              		.comm	magY,20,4
+  70              		.comm	magZ,20,4
+  71              		.comm	humidity,30,4
+  72              		.comm	json_data,300,4
+  73              		.comm	connectionFailure,1,1
+  74              		.comm	TimerIdSentMsg,4,4
+  75              		.comm	turnedOnSentTimer,4,4
+  76              		.comm	copied,1,1
+  77              		.comm	copiedData,1200,4
+  78              		.section	.rodata
+  79              		.align	2
+  80              	.LC0:
+  81 0000 4C534D39 		.ascii	"LSM9DS1\000"
+  81      44533100 
+  82              		.global	__aeabi_f2d
+  83              		.align	2
+  84              	.LC1:
+  85 0008 7B226D22 		.ascii	"{\"m\":[{\"id\":a,\"x\":%.2f,\"y\":%.2f,\"z\":%.2f}"
+  85      3A5B7B22 
+  85      6964223A 
+  85      612C2278 
+  85      223A252E 
+  86 0031 5D7D00   		.ascii	"]}\000"
+  87              		.align	2
+  88              	.LC2:
+  89 0034 4779726F 		.ascii	"Gyroscope\000"
+  89      73636F70 
+  89      6500
+  90 003e 0000     		.align	2
+  91              	.LC3:
+  92 0040 7B226D22 		.ascii	"{\"m\":[{\"id\":g,\"x\":%.2f,\"y\":%.2f,\"z\":%.2f}"
+  92      3A5B7B22 
+  92      6964223A 
+  92      672C2278 
+  92      223A252E 
+  93 0069 5D7D00   		.ascii	"]}\000"
+  94              		.align	2
+  95              	.LC4:
+  96 006c 4D61676E 		.ascii	"Magnetometer\000"
+  96      65746F6D 
+  96      65746572 
+  96      00
+  97 0079 000000   		.align	2
+  98              	.LC5:
+  99 007c 7B226D22 		.ascii	"{\"m\":[{\"id\":m,\"x\":%.2f,\"y\":%.2f,\"z\":%.2f}"
+  99      3A5B7B22 
+  99      6964223A 
+  99      6D2C2278 
+  99      223A252E 
+ 100 00a5 5D7D00   		.ascii	"]}\000"
+ 101              		.align	2
+ 102              	.LC6:
+ 103 00a8 54656D70 		.ascii	"Temperature\000"
+ 103      65726174 
+ 103      75726500 
+ 104              		.align	2
+ 105              	.LC7:
+ 106 00b4 7B226D22 		.ascii	"{\"m\":[{\"id\":t,\"x\":%.2f}]}\000"
+ 106      3A5B7B22 
+ 106      6964223A 
+ 106      742C2278 
+ 106      223A252E 
+ 107 00ce 0000     		.align	2
+ 108              	.LC8:
+ 109 00d0 48756D69 		.ascii	"Humidity\000"
+ 109      64697479 
+ 109      00
+ 110 00d9 000000   		.align	2
+ 111              	.LC9:
+ 112 00dc 7B226D22 		.ascii	"{\"m\":[{\"id\":h,\"x\":%.2f}]}\000"
+ 112      3A5B7B22 
+ 112      6964223A 
+ 112      682C2278 
+ 112      223A252E 
+ 113 00f6 0000     		.align	2
+ 114              	.LC10:
+ 115 00f8 54534C32 		.ascii	"TSL2561\000"
+ 115      35363100 
+ 116              		.align	2
+ 117              	.LC11:
+ 118 0100 7B226D22 		.ascii	"{\"m\":[{\"id\":l,\"x\":%.2f}]}\000"
+ 118      3A5B7B22 
+ 118      6964223A 
+ 118      6C2C2278 
+ 118      223A252E 
+ 119 011a 0000     		.align	2
+ 120              	.LC12:
+ 121 011c 416C6C5F 		.ascii	"All_sens\000"
+ 121      73656E73 
+ 121      00
+ 122 0125 000000   		.align	2
+ 123              	.LC13:
+ 124 0128 78252E32 		.ascii	"x%.2f \000"
+ 124      662000
+ 125 012f 00       		.align	2
+ 126              	.LC14:
+ 127 0130 79252E32 		.ascii	"y%.2f \000"
+ 127      662000
+ 128 0137 00       		.align	2
+ 129              	.LC15:
+ 130 0138 7A252E32 		.ascii	"z%.2f \000"
+ 130      662000
+ 131 013f 00       		.align	2
+ 132              	.LC16:
+ 133 0140 7B226D22 		.ascii	"{\"m\":[{\"id\":a,\"x\":%.2f,\"y\":%.2f,\"z\":%.2f}"
+ 133      3A5B7B22 
+ 133      6964223A 
+ 133      612C2278 
+ 133      223A252E 
+ 134 0169 2C7B2269 		.ascii	",{\"id\":g,\"x\":%.2f,\"y\":%.2f,\"z\":%.2f},{\"id\""
+ 134      64223A67 
+ 134      2C227822 
+ 134      3A252E32 
+ 134      662C2279 
+ 135 0193 3A6D2C22 		.ascii	":m,\"x\":%.2f,\"y\":%.2f,\"z\":%.2f},{\"id\":t,\"x\""
+ 135      78223A25 
+ 135      2E32662C 
+ 135      2279223A 
+ 135      252E3266 
+ 136 01bd 3A252E32 		.ascii	":%.2f},{\"id\":h,\"x\":%.2f},{\"id\":l,\"x\":%.2f}]"
+ 136      667D2C7B 
+ 136      22696422 
+ 136      3A682C22 
+ 136      78223A25 
+ 137 01e8 7D00     		.ascii	"}\000"
+ 138 01ea 0000     		.section	.text.sendMeasurementsToBt,"ax",%progbits
+ 139              		.align	2
+ 140              		.global	sendMeasurementsToBt
+ 141              		.thumb
+ 142              		.thumb_func
+ 144              	sendMeasurementsToBt:
+ 145              	.LFB117:
+ 146              		.file 1 "../SendMeasurementsToBt.c"
+   1:../SendMeasurementsToBt.c **** /*
+   2:../SendMeasurementsToBt.c ****  * SendMeasurementsToBt.c
+   3:../SendMeasurementsToBt.c ****  *
+   4:../SendMeasurementsToBt.c ****  *  Created on: 12-02-2016
+   5:../SendMeasurementsToBt.c ****  *      Author: Mateusz
+   6:../SendMeasurementsToBt.c ****  */
+   7:../SendMeasurementsToBt.c **** #include "CleanArray.h"
+   8:../SendMeasurementsToBt.c **** #include "LSM9DS1_Driver.h"
+   9:../SendMeasurementsToBt.c **** #include "BluetoothDriver.h"
+  10:../SendMeasurementsToBt.c **** #include "SendMeasurementsToBt.h"
+  11:../SendMeasurementsToBt.c **** #include <DAVE3.h>
+  12:../SendMeasurementsToBt.c **** #include <string.h>
+  13:../SendMeasurementsToBt.c **** #include "HTU21D.h"
+  14:../SendMeasurementsToBt.c **** #include "TSL2561.h"
+  15:../SendMeasurementsToBt.c **** 
+  16:../SendMeasurementsToBt.c **** #define SEND_DELAY 60
+  17:../SendMeasurementsToBt.c **** 
+  18:../SendMeasurementsToBt.c **** char device[20]; //tablica w ktorej przechowujemy wybrany sensor
+  19:../SendMeasurementsToBt.c **** int turnedOn = 0; //czy ktorys timer jest wlaczony
+  20:../SendMeasurementsToBt.c **** 
+  21:../SendMeasurementsToBt.c **** char xAxis[10]/*[50]*/;
+  22:../SendMeasurementsToBt.c **** char yAxis[10]/*[50]*/;
+  23:../SendMeasurementsToBt.c **** char zAxis[10]/*[50]*/;
+  24:../SendMeasurementsToBt.c **** 
+  25:../SendMeasurementsToBt.c **** char xAxisf[30]/*[50]*/;
+  26:../SendMeasurementsToBt.c **** char yAxisf[30]/*[50]*/;
+  27:../SendMeasurementsToBt.c **** char zAxisf[30]/*[50]*/;
+  28:../SendMeasurementsToBt.c **** 
+  29:../SendMeasurementsToBt.c **** //all sensors
+  30:../SendMeasurementsToBt.c **** char accX[20];
+  31:../SendMeasurementsToBt.c **** char accY[20];
+  32:../SendMeasurementsToBt.c **** char accZ[20];
+  33:../SendMeasurementsToBt.c **** 
+  34:../SendMeasurementsToBt.c **** char gyrX[20];
+  35:../SendMeasurementsToBt.c **** char gyrY[20];
+  36:../SendMeasurementsToBt.c **** char gyrZ[20];
+  37:../SendMeasurementsToBt.c **** 
+  38:../SendMeasurementsToBt.c **** char magX[20];
+  39:../SendMeasurementsToBt.c **** char magY[20];
+  40:../SendMeasurementsToBt.c **** char magZ[20];
+  41:../SendMeasurementsToBt.c **** //all sensors
+  42:../SendMeasurementsToBt.c **** 
+  43:../SendMeasurementsToBt.c **** char humidity[30];
+  44:../SendMeasurementsToBt.c **** 
+  45:../SendMeasurementsToBt.c **** char json_data[300];
+  46:../SendMeasurementsToBt.c **** 
+  47:../SendMeasurementsToBt.c **** bool connectionFailure; //jesli wystapil problem z polaczeniem bluetooth to trzeba usunac timer, zm
+  48:../SendMeasurementsToBt.c **** 
+  49:../SendMeasurementsToBt.c **** handle_t TimerIdSentMsg; //id timera do
+  50:../SendMeasurementsToBt.c **** int turnedOnSentTimer;
+  51:../SendMeasurementsToBt.c **** char copied;
+  52:../SendMeasurementsToBt.c **** accel copiedData[100];
+  53:../SendMeasurementsToBt.c **** 
+  54:../SendMeasurementsToBt.c **** void sendMeasurementsToBt(void)
+  55:../SendMeasurementsToBt.c **** {
+ 147              		.loc 1 55 0
+ 148              		.cfi_startproc
+ 149              		@ args = 0, pretend = 0, frame = 8
+ 150              		@ frame_needed = 1, uses_anonymous_args = 0
+ 151 0000 2DE9B04F 		push	{r4, r5, r7, r8, r9, sl, fp, lr}
+ 152              	.LCFI0:
+ 153              		.cfi_def_cfa_offset 32
+ 154              		.cfi_offset 4, -32
+ 155              		.cfi_offset 5, -28
+ 156              		.cfi_offset 7, -24
+ 157              		.cfi_offset 8, -20
+ 158              		.cfi_offset 9, -16
+ 159              		.cfi_offset 10, -12
+ 160              		.cfi_offset 11, -8
+ 161              		.cfi_offset 14, -4
+ 162 0004 2DED108B 		fstmfdd	sp!, {d8, d9, d10, d11, d12, d13, d14, d15}
+ 163              	.LCFI1:
+ 164              		.cfi_def_cfa_offset 96
+ 165              		.cfi_offset 80, -96
+ 166              		.cfi_offset 82, -88
+ 167              		.cfi_offset 84, -80
+ 168              		.cfi_offset 86, -72
+ 169              		.cfi_offset 88, -64
+ 170              		.cfi_offset 90, -56
+ 171              		.cfi_offset 92, -48
+ 172              		.cfi_offset 94, -40
+ 173 0008 98B0     		sub	sp, sp, #96
+ 174              	.LCFI2:
+ 175              		.cfi_def_cfa_offset 192
+ 176 000a 16AF     		add	r7, sp, #88
+ 177              	.LCFI3:
+ 178              		.cfi_def_cfa 7, 104
+  56:../SendMeasurementsToBt.c **** 	static int i = 0;
+  57:../SendMeasurementsToBt.c **** 	if(!strcmp(device, "LSM9DS1"))
+ 179              		.loc 1 57 0
+ 180 000c 40F20000 		movw	r0, #:lower16:device
+ 181 0010 C0F20000 		movt	r0, #:upper16:device
+ 182 0014 40F20001 		movw	r1, #:lower16:.LC0
+ 183 0018 C0F20001 		movt	r1, #:upper16:.LC0
+ 184 001c FFF7FEFF 		bl	strcmp
+ 185 0020 0346     		mov	r3, r0
+ 186 0022 002B     		cmp	r3, #0
+ 187 0024 40F0AB80 		bne	.L2
+  58:../SendMeasurementsToBt.c **** 	{
+  59:../SendMeasurementsToBt.c **** 		if(0 == i){
+ 188              		.loc 1 59 0
+ 189 0028 40F20003 		movw	r3, #:lower16:i.9653
+ 190 002c C0F20003 		movt	r3, #:upper16:i.9653
+ 191 0030 1B68     		ldr	r3, [r3, #0]
+ 192 0032 002B     		cmp	r3, #0
+ 193 0034 0DD1     		bne	.L3
+  60:../SendMeasurementsToBt.c **** 			startMeasurements();
+ 194              		.loc 1 60 0
+ 195 0036 FFF7FEFF 		bl	startMeasurements
+  61:../SendMeasurementsToBt.c **** 			++i;
+ 196              		.loc 1 61 0
+ 197 003a 40F20003 		movw	r3, #:lower16:i.9653
+ 198 003e C0F20003 		movt	r3, #:upper16:i.9653
+ 199 0042 1B68     		ldr	r3, [r3, #0]
+ 200 0044 03F10102 		add	r2, r3, #1
+ 201 0048 40F20003 		movw	r3, #:lower16:i.9653
+ 202 004c C0F20003 		movt	r3, #:upper16:i.9653
+ 203 0050 1A60     		str	r2, [r3, #0]
+ 204              	.L3:
+  62:../SendMeasurementsToBt.c **** 		}
+  63:../SendMeasurementsToBt.c **** 		readAndSendMeasurements(NULL);
+ 205              		.loc 1 63 0
+ 206 0052 4FF00000 		mov	r0, #0
+ 207 0056 FFF7FEFF 		bl	readAndSendMeasurements
+  64:../SendMeasurementsToBt.c **** 
+  65:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+  66:../SendMeasurementsToBt.c **** 								"\"m\":"
+  67:../SendMeasurementsToBt.c **** 								"["
+  68:../SendMeasurementsToBt.c **** 										"{"
+  69:../SendMeasurementsToBt.c **** 											"\"id\":a,"
+  70:../SendMeasurementsToBt.c **** 											"\"x\":%.2f,"
+  71:../SendMeasurementsToBt.c **** 											"\"y\":%.2f,"
+  72:../SendMeasurementsToBt.c **** 											"\"z\":%.2f"
+  73:../SendMeasurementsToBt.c **** 										"}"
+  74:../SendMeasurementsToBt.c **** 								"]"
+  75:../SendMeasurementsToBt.c **** 							"}", getAccelXf(), getAccelYf(), getAccelZf());
+ 208              		.loc 1 75 0
+ 209 005a FFF7FEFF 		bl	getAccelXf
+ 210 005e 0346     		mov	r3, r0	@ float
+  65:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 211              		.loc 1 65 0
+ 212 0060 1846     		mov	r0, r3	@ float
+ 213 0062 FFF7FEFF 		bl	__aeabi_f2d
+ 214 0066 0446     		mov	r4, r0
+ 215 0068 0D46     		mov	r5, r1
+ 216              		.loc 1 75 0
+ 217 006a FFF7FEFF 		bl	getAccelYf
+ 218 006e 0346     		mov	r3, r0	@ float
+  65:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 219              		.loc 1 65 0
+ 220 0070 1846     		mov	r0, r3	@ float
+ 221 0072 FFF7FEFF 		bl	__aeabi_f2d
+ 222 0076 8046     		mov	r8, r0
+ 223 0078 8946     		mov	r9, r1
+ 224              		.loc 1 75 0
+ 225 007a FFF7FEFF 		bl	getAccelZf
+ 226 007e 0346     		mov	r3, r0	@ float
+  65:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 227              		.loc 1 65 0
+ 228 0080 1846     		mov	r0, r3	@ float
+ 229 0082 FFF7FEFF 		bl	__aeabi_f2d
+ 230 0086 0246     		mov	r2, r0
+ 231 0088 0B46     		mov	r3, r1
+ 232 008a CDE90089 		strd	r8, [sp]
+ 233 008e CDE90223 		strd	r2, [sp, #8]
+ 234 0092 40F20000 		movw	r0, #:lower16:json_data
+ 235 0096 C0F20000 		movt	r0, #:upper16:json_data
+ 236 009a 40F20001 		movw	r1, #:lower16:.LC1
+ 237 009e C0F20001 		movt	r1, #:upper16:.LC1
+ 238 00a2 2246     		mov	r2, r4
+ 239 00a4 2B46     		mov	r3, r5
+ 240 00a6 FFF7FEFF 		bl	sprintf
+  76:../SendMeasurementsToBt.c **** 
+  77:../SendMeasurementsToBt.c **** 
+  78:../SendMeasurementsToBt.c **** 		if(0 == turnedOnSentTimer)
+ 241              		.loc 1 78 0
+ 242 00aa 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 243 00ae C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 244 00b2 1B68     		ldr	r3, [r3, #0]
+ 245 00b4 002B     		cmp	r3, #0
+ 246 00b6 20D1     		bne	.L4
+  79:../SendMeasurementsToBt.c **** 		{
+  80:../SendMeasurementsToBt.c **** 			TimerIdSentMsg = SYSTM001_CreateTimer(SEND_DELAY,SYSTM001_PERIODIC,sendMsgLSM9DS1,NULL);
+ 247              		.loc 1 80 0
+ 248 00b8 4FF03C00 		mov	r0, #60
+ 249 00bc 4FF00101 		mov	r1, #1
+ 250 00c0 40F20002 		movw	r2, #:lower16:sendMsgLSM9DS1
+ 251 00c4 C0F20002 		movt	r2, #:upper16:sendMsgLSM9DS1
+ 252 00c8 4FF00003 		mov	r3, #0
+ 253 00cc FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 254 00d0 0246     		mov	r2, r0
+ 255 00d2 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 256 00d6 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 257 00da 1A60     		str	r2, [r3, #0]
+  81:../SendMeasurementsToBt.c **** 			SYSTM001_StartTimer(TimerIdSentMsg);
+ 258              		.loc 1 81 0
+ 259 00dc 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 260 00e0 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 261 00e4 1B68     		ldr	r3, [r3, #0]
+ 262 00e6 1846     		mov	r0, r3
+ 263 00e8 FFF7FEFF 		bl	SYSTM001_StartTimer
+  82:../SendMeasurementsToBt.c **** 			turnedOnSentTimer = 1;
+ 264              		.loc 1 82 0
+ 265 00ec 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 266 00f0 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 267 00f4 4FF00102 		mov	r2, #1
+ 268 00f8 1A60     		str	r2, [r3, #0]
+ 269              	.L4:
+  83:../SendMeasurementsToBt.c **** 		}
+  84:../SendMeasurementsToBt.c **** 
+  85:../SendMeasurementsToBt.c **** 		if(1 == turnedOnSentTimer)
+ 270              		.loc 1 85 0
+ 271 00fa 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 272 00fe C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 273 0102 1B68     		ldr	r3, [r3, #0]
+ 274 0104 012B     		cmp	r3, #1
+ 275 0106 40F03985 		bne	.L1
+  86:../SendMeasurementsToBt.c **** 		{
+  87:../SendMeasurementsToBt.c **** 			if(TRUE == connectionFailure)
+ 276              		.loc 1 87 0
+ 277 010a 40F20003 		movw	r3, #:lower16:connectionFailure
+ 278 010e C0F20003 		movt	r3, #:upper16:connectionFailure
+ 279 0112 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 280 0114 012B     		cmp	r3, #1
+ 281 0116 40F03185 		bne	.L1
+  88:../SendMeasurementsToBt.c **** 			{
+  89:../SendMeasurementsToBt.c **** 				connectionFailure = FALSE;
+ 282              		.loc 1 89 0
+ 283 011a 40F20003 		movw	r3, #:lower16:connectionFailure
+ 284 011e C0F20003 		movt	r3, #:upper16:connectionFailure
+ 285 0122 4FF00002 		mov	r2, #0
+ 286 0126 1A70     		strb	r2, [r3, #0]
+  90:../SendMeasurementsToBt.c **** 
+  91:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+  92:../SendMeasurementsToBt.c **** 				if(i != 0)
+ 287              		.loc 1 92 0
+ 288 0128 40F20003 		movw	r3, #:lower16:i.9653
+ 289 012c C0F20003 		movt	r3, #:upper16:i.9653
+ 290 0130 1B68     		ldr	r3, [r3, #0]
+ 291 0132 002B     		cmp	r3, #0
+ 292 0134 08D0     		beq	.L6
+  93:../SendMeasurementsToBt.c **** 				{
+  94:../SendMeasurementsToBt.c **** 					resetMeasurements();
+ 293              		.loc 1 94 0
+ 294 0136 FFF7FEFF 		bl	resetMeasurements
+  95:../SendMeasurementsToBt.c **** 					i = 0;
+ 295              		.loc 1 95 0
+ 296 013a 40F20003 		movw	r3, #:lower16:i.9653
+ 297 013e C0F20003 		movt	r3, #:upper16:i.9653
+ 298 0142 4FF00002 		mov	r2, #0
+ 299 0146 1A60     		str	r2, [r3, #0]
+ 300              	.L6:
+  96:../SendMeasurementsToBt.c **** 				}
+  97:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+  98:../SendMeasurementsToBt.c **** 
+  99:../SendMeasurementsToBt.c **** 				SYSTM001_StopTimer(TimerIdSentMsg);
+ 301              		.loc 1 99 0
+ 302 0148 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 303 014c C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 304 0150 1B68     		ldr	r3, [r3, #0]
+ 305 0152 1846     		mov	r0, r3
+ 306 0154 FFF7FEFF 		bl	SYSTM001_StopTimer
+ 100:../SendMeasurementsToBt.c **** 
+ 101:../SendMeasurementsToBt.c **** 				SYSTM001_DeleteTimer(TimerIdSentMsg);
+ 307              		.loc 1 101 0
+ 308 0158 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 309 015c C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 310 0160 1B68     		ldr	r3, [r3, #0]
+ 311 0162 1846     		mov	r0, r3
+ 312 0164 FFF7FEFF 		bl	SYSTM001_DeleteTimer
+ 102:../SendMeasurementsToBt.c **** 				TimerIdSentMsg = 0;
+ 313              		.loc 1 102 0
+ 314 0168 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 315 016c C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 316 0170 4FF00002 		mov	r2, #0
+ 317 0174 1A60     		str	r2, [r3, #0]
+ 103:../SendMeasurementsToBt.c **** 
+ 104:../SendMeasurementsToBt.c **** 				cleanArray();
+ 318              		.loc 1 104 0
+ 319 0176 FFF7FEFF 		bl	cleanArray
+ 320 017a 00F0FFBC 		b	.L1
+ 321              	.L2:
+ 105:../SendMeasurementsToBt.c **** 
+ 106:../SendMeasurementsToBt.c **** 			}
+ 107:../SendMeasurementsToBt.c **** 		}
+ 108:../SendMeasurementsToBt.c **** 	}
+ 109:../SendMeasurementsToBt.c **** 	else if(!strcmp(device, "Gyroscope"))
+ 322              		.loc 1 109 0
+ 323 017e 40F20000 		movw	r0, #:lower16:device
+ 324 0182 C0F20000 		movt	r0, #:upper16:device
+ 325 0186 40F20001 		movw	r1, #:lower16:.LC2
+ 326 018a C0F20001 		movt	r1, #:upper16:.LC2
+ 327 018e FFF7FEFF 		bl	strcmp
+ 328 0192 0346     		mov	r3, r0
+ 329 0194 002B     		cmp	r3, #0
+ 330 0196 40F0AB80 		bne	.L7
+ 110:../SendMeasurementsToBt.c **** 	{
+ 111:../SendMeasurementsToBt.c **** 		if(0 == i){
+ 331              		.loc 1 111 0
+ 332 019a 40F20003 		movw	r3, #:lower16:i.9653
+ 333 019e C0F20003 		movt	r3, #:upper16:i.9653
+ 334 01a2 1B68     		ldr	r3, [r3, #0]
+ 335 01a4 002B     		cmp	r3, #0
+ 336 01a6 0DD1     		bne	.L8
+ 112:../SendMeasurementsToBt.c **** 			startMeasurements();
+ 337              		.loc 1 112 0
+ 338 01a8 FFF7FEFF 		bl	startMeasurements
+ 113:../SendMeasurementsToBt.c **** 			++i;
+ 339              		.loc 1 113 0
+ 340 01ac 40F20003 		movw	r3, #:lower16:i.9653
+ 341 01b0 C0F20003 		movt	r3, #:upper16:i.9653
+ 342 01b4 1B68     		ldr	r3, [r3, #0]
+ 343 01b6 03F10102 		add	r2, r3, #1
+ 344 01ba 40F20003 		movw	r3, #:lower16:i.9653
+ 345 01be C0F20003 		movt	r3, #:upper16:i.9653
+ 346 01c2 1A60     		str	r2, [r3, #0]
+ 347              	.L8:
+ 114:../SendMeasurementsToBt.c **** 		}
+ 115:../SendMeasurementsToBt.c **** 		readAndSendMeasurements(NULL);
+ 348              		.loc 1 115 0
+ 349 01c4 4FF00000 		mov	r0, #0
+ 350 01c8 FFF7FEFF 		bl	readAndSendMeasurements
+ 116:../SendMeasurementsToBt.c **** 
+ 117:../SendMeasurementsToBt.c **** 
+ 118:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 119:../SendMeasurementsToBt.c **** 								"\"m\":"
+ 120:../SendMeasurementsToBt.c **** 								"["
+ 121:../SendMeasurementsToBt.c **** 										"{"
+ 122:../SendMeasurementsToBt.c **** 											"\"id\":g,"
+ 123:../SendMeasurementsToBt.c **** 											"\"x\":%.2f,"
+ 124:../SendMeasurementsToBt.c **** 											"\"y\":%.2f,"
+ 125:../SendMeasurementsToBt.c **** 											"\"z\":%.2f"
+ 126:../SendMeasurementsToBt.c **** 										"}"
+ 127:../SendMeasurementsToBt.c **** 								"]"
+ 128:../SendMeasurementsToBt.c **** 							"}", getGyroXf(), getGyroYf(), getGyroZf());
+ 351              		.loc 1 128 0
+ 352 01cc FFF7FEFF 		bl	getGyroXf
+ 353 01d0 0346     		mov	r3, r0	@ float
+ 118:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 354              		.loc 1 118 0
+ 355 01d2 1846     		mov	r0, r3	@ float
+ 356 01d4 FFF7FEFF 		bl	__aeabi_f2d
+ 357 01d8 0446     		mov	r4, r0
+ 358 01da 0D46     		mov	r5, r1
+ 359              		.loc 1 128 0
+ 360 01dc FFF7FEFF 		bl	getGyroYf
+ 361 01e0 0346     		mov	r3, r0	@ float
+ 118:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 362              		.loc 1 118 0
+ 363 01e2 1846     		mov	r0, r3	@ float
+ 364 01e4 FFF7FEFF 		bl	__aeabi_f2d
+ 365 01e8 8046     		mov	r8, r0
+ 366 01ea 8946     		mov	r9, r1
+ 367              		.loc 1 128 0
+ 368 01ec FFF7FEFF 		bl	getGyroZf
+ 369 01f0 0346     		mov	r3, r0	@ float
+ 118:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 370              		.loc 1 118 0
+ 371 01f2 1846     		mov	r0, r3	@ float
+ 372 01f4 FFF7FEFF 		bl	__aeabi_f2d
+ 373 01f8 0246     		mov	r2, r0
+ 374 01fa 0B46     		mov	r3, r1
+ 375 01fc CDE90089 		strd	r8, [sp]
+ 376 0200 CDE90223 		strd	r2, [sp, #8]
+ 377 0204 40F20000 		movw	r0, #:lower16:json_data
+ 378 0208 C0F20000 		movt	r0, #:upper16:json_data
+ 379 020c 40F20001 		movw	r1, #:lower16:.LC3
+ 380 0210 C0F20001 		movt	r1, #:upper16:.LC3
+ 381 0214 2246     		mov	r2, r4
+ 382 0216 2B46     		mov	r3, r5
+ 383 0218 FFF7FEFF 		bl	sprintf
+ 129:../SendMeasurementsToBt.c **** 
+ 130:../SendMeasurementsToBt.c **** 		if(0 == turnedOnSentTimer)
+ 384              		.loc 1 130 0
+ 385 021c 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 386 0220 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 387 0224 1B68     		ldr	r3, [r3, #0]
+ 388 0226 002B     		cmp	r3, #0
+ 389 0228 20D1     		bne	.L9
+ 131:../SendMeasurementsToBt.c **** 		{
+ 132:../SendMeasurementsToBt.c **** 			TimerIdSentMsg = SYSTM001_CreateTimer(SEND_DELAY,SYSTM001_PERIODIC,sendMsgLSM9DS1,NULL);
+ 390              		.loc 1 132 0
+ 391 022a 4FF03C00 		mov	r0, #60
+ 392 022e 4FF00101 		mov	r1, #1
+ 393 0232 40F20002 		movw	r2, #:lower16:sendMsgLSM9DS1
+ 394 0236 C0F20002 		movt	r2, #:upper16:sendMsgLSM9DS1
+ 395 023a 4FF00003 		mov	r3, #0
+ 396 023e FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 397 0242 0246     		mov	r2, r0
+ 398 0244 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 399 0248 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 400 024c 1A60     		str	r2, [r3, #0]
+ 133:../SendMeasurementsToBt.c **** 			SYSTM001_StartTimer(TimerIdSentMsg);
+ 401              		.loc 1 133 0
+ 402 024e 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 403 0252 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 404 0256 1B68     		ldr	r3, [r3, #0]
+ 405 0258 1846     		mov	r0, r3
+ 406 025a FFF7FEFF 		bl	SYSTM001_StartTimer
+ 134:../SendMeasurementsToBt.c **** 			turnedOnSentTimer = 1;
+ 407              		.loc 1 134 0
+ 408 025e 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 409 0262 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 410 0266 4FF00102 		mov	r2, #1
+ 411 026a 1A60     		str	r2, [r3, #0]
+ 412              	.L9:
+ 135:../SendMeasurementsToBt.c **** 		}
+ 136:../SendMeasurementsToBt.c **** 
+ 137:../SendMeasurementsToBt.c **** 		if(1 == turnedOnSentTimer)
+ 413              		.loc 1 137 0
+ 414 026c 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 415 0270 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 416 0274 1B68     		ldr	r3, [r3, #0]
+ 417 0276 012B     		cmp	r3, #1
+ 418 0278 40F08084 		bne	.L1
+ 138:../SendMeasurementsToBt.c **** 		{
+ 139:../SendMeasurementsToBt.c **** 			if(TRUE == connectionFailure)
+ 419              		.loc 1 139 0
+ 420 027c 40F20003 		movw	r3, #:lower16:connectionFailure
+ 421 0280 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 422 0284 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 423 0286 012B     		cmp	r3, #1
+ 424 0288 40F07884 		bne	.L1
+ 140:../SendMeasurementsToBt.c **** 			{
+ 141:../SendMeasurementsToBt.c **** 				connectionFailure = FALSE;
+ 425              		.loc 1 141 0
+ 426 028c 40F20003 		movw	r3, #:lower16:connectionFailure
+ 427 0290 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 428 0294 4FF00002 		mov	r2, #0
+ 429 0298 1A70     		strb	r2, [r3, #0]
+ 142:../SendMeasurementsToBt.c **** 
+ 143:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 144:../SendMeasurementsToBt.c **** 				if(i != 0)
+ 430              		.loc 1 144 0
+ 431 029a 40F20003 		movw	r3, #:lower16:i.9653
+ 432 029e C0F20003 		movt	r3, #:upper16:i.9653
+ 433 02a2 1B68     		ldr	r3, [r3, #0]
+ 434 02a4 002B     		cmp	r3, #0
+ 435 02a6 08D0     		beq	.L10
+ 145:../SendMeasurementsToBt.c **** 				{
+ 146:../SendMeasurementsToBt.c **** 					resetMeasurements();
+ 436              		.loc 1 146 0
+ 437 02a8 FFF7FEFF 		bl	resetMeasurements
+ 147:../SendMeasurementsToBt.c **** 					i = 0;
+ 438              		.loc 1 147 0
+ 439 02ac 40F20003 		movw	r3, #:lower16:i.9653
+ 440 02b0 C0F20003 		movt	r3, #:upper16:i.9653
+ 441 02b4 4FF00002 		mov	r2, #0
+ 442 02b8 1A60     		str	r2, [r3, #0]
+ 443              	.L10:
+ 148:../SendMeasurementsToBt.c **** 				}
+ 149:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 150:../SendMeasurementsToBt.c **** 
+ 151:../SendMeasurementsToBt.c **** 				//resetMeasurements();
+ 152:../SendMeasurementsToBt.c **** 				SYSTM001_StopTimer(TimerIdSentMsg);
+ 444              		.loc 1 152 0
+ 445 02ba 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 446 02be C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 447 02c2 1B68     		ldr	r3, [r3, #0]
+ 448 02c4 1846     		mov	r0, r3
+ 449 02c6 FFF7FEFF 		bl	SYSTM001_StopTimer
+ 153:../SendMeasurementsToBt.c **** 
+ 154:../SendMeasurementsToBt.c **** 				SYSTM001_DeleteTimer(TimerIdSentMsg);
+ 450              		.loc 1 154 0
+ 451 02ca 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 452 02ce C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 453 02d2 1B68     		ldr	r3, [r3, #0]
+ 454 02d4 1846     		mov	r0, r3
+ 455 02d6 FFF7FEFF 		bl	SYSTM001_DeleteTimer
+ 155:../SendMeasurementsToBt.c **** 
+ 156:../SendMeasurementsToBt.c **** 				//i = 0;
+ 157:../SendMeasurementsToBt.c **** 				TimerIdSentMsg = 0;
+ 456              		.loc 1 157 0
+ 457 02da 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 458 02de C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 459 02e2 4FF00002 		mov	r2, #0
+ 460 02e6 1A60     		str	r2, [r3, #0]
+ 158:../SendMeasurementsToBt.c **** 				cleanArray();
+ 461              		.loc 1 158 0
+ 462 02e8 FFF7FEFF 		bl	cleanArray
+ 463 02ec 00F046BC 		b	.L1
+ 464              	.L7:
+ 159:../SendMeasurementsToBt.c **** 
+ 160:../SendMeasurementsToBt.c **** 			}
+ 161:../SendMeasurementsToBt.c **** 		}
+ 162:../SendMeasurementsToBt.c **** 	}
+ 163:../SendMeasurementsToBt.c **** 	else if(!strcmp(device, "Magnetometer"))
+ 465              		.loc 1 163 0
+ 466 02f0 40F20000 		movw	r0, #:lower16:device
+ 467 02f4 C0F20000 		movt	r0, #:upper16:device
+ 468 02f8 40F20001 		movw	r1, #:lower16:.LC4
+ 469 02fc C0F20001 		movt	r1, #:upper16:.LC4
+ 470 0300 FFF7FEFF 		bl	strcmp
+ 471 0304 0346     		mov	r3, r0
+ 472 0306 002B     		cmp	r3, #0
+ 473 0308 40F0B980 		bne	.L11
+ 164:../SendMeasurementsToBt.c **** 	{
+ 165:../SendMeasurementsToBt.c **** 		if(0 == i){
+ 474              		.loc 1 165 0
+ 475 030c 40F20003 		movw	r3, #:lower16:i.9653
+ 476 0310 C0F20003 		movt	r3, #:upper16:i.9653
+ 477 0314 1B68     		ldr	r3, [r3, #0]
+ 478 0316 002B     		cmp	r3, #0
+ 479 0318 0DD1     		bne	.L12
+ 166:../SendMeasurementsToBt.c **** 			startMeasurements();
+ 480              		.loc 1 166 0
+ 481 031a FFF7FEFF 		bl	startMeasurements
+ 167:../SendMeasurementsToBt.c **** 			++i;
+ 482              		.loc 1 167 0
+ 483 031e 40F20003 		movw	r3, #:lower16:i.9653
+ 484 0322 C0F20003 		movt	r3, #:upper16:i.9653
+ 485 0326 1B68     		ldr	r3, [r3, #0]
+ 486 0328 03F10102 		add	r2, r3, #1
+ 487 032c 40F20003 		movw	r3, #:lower16:i.9653
+ 488 0330 C0F20003 		movt	r3, #:upper16:i.9653
+ 489 0334 1A60     		str	r2, [r3, #0]
+ 490              	.L12:
+ 168:../SendMeasurementsToBt.c **** 		}
+ 169:../SendMeasurementsToBt.c **** 		readAndSendMeasurements(NULL);
+ 491              		.loc 1 169 0
+ 492 0336 4FF00000 		mov	r0, #0
+ 493 033a FFF7FEFF 		bl	readAndSendMeasurements
+ 170:../SendMeasurementsToBt.c **** 
+ 171:../SendMeasurementsToBt.c **** 
+ 172:../SendMeasurementsToBt.c **** 		/*sprintf(xAxisf, "x%.2f", getMagnetXf());
+ 173:../SendMeasurementsToBt.c **** 
+ 174:../SendMeasurementsToBt.c **** 		sprintf(yAxisf, "y%.2f", getMagnetYf());
+ 175:../SendMeasurementsToBt.c **** 
+ 176:../SendMeasurementsToBt.c **** 		sprintf(zAxisf, "z%.2f", getMagnetZf());*/
+ 177:../SendMeasurementsToBt.c **** 		 IO004_TogglePin(IO004_Handle4);
+ 494              		.loc 1 177 0
+ 495 033e 40F20003 		movw	r3, #:lower16:IO004_Handle4
+ 496 0342 C0F20003 		movt	r3, #:upper16:IO004_Handle4
+ 497 0346 5A68     		ldr	r2, [r3, #4]
+ 498 0348 40F20003 		movw	r3, #:lower16:IO004_Handle4
+ 499 034c C0F20003 		movt	r3, #:upper16:IO004_Handle4
+ 500 0350 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 501 0352 4FF00111 		mov	r1, #65537
+ 502 0356 01FA03F3 		lsl	r3, r1, r3
+ 503 035a 5360     		str	r3, [r2, #4]
+ 178:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 179:../SendMeasurementsToBt.c **** 								"\"m\":"
+ 180:../SendMeasurementsToBt.c **** 								"["
+ 181:../SendMeasurementsToBt.c **** 										"{"
+ 182:../SendMeasurementsToBt.c **** 											"\"id\":m,"
+ 183:../SendMeasurementsToBt.c **** 											"\"x\":%.2f,"
+ 184:../SendMeasurementsToBt.c **** 											"\"y\":%.2f,"
+ 185:../SendMeasurementsToBt.c **** 											"\"z\":%.2f"
+ 186:../SendMeasurementsToBt.c **** 										"}"
+ 187:../SendMeasurementsToBt.c **** 								"]"
+ 188:../SendMeasurementsToBt.c **** 							"}", getMagnetXf(), getMagnetYf(), getMagnetZf());
+ 504              		.loc 1 188 0
+ 505 035c FFF7FEFF 		bl	getMagnetXf
+ 506 0360 0346     		mov	r3, r0	@ float
+ 178:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 507              		.loc 1 178 0
+ 508 0362 1846     		mov	r0, r3	@ float
+ 509 0364 FFF7FEFF 		bl	__aeabi_f2d
+ 510 0368 0446     		mov	r4, r0
+ 511 036a 0D46     		mov	r5, r1
+ 512              		.loc 1 188 0
+ 513 036c FFF7FEFF 		bl	getMagnetYf
+ 514 0370 0346     		mov	r3, r0	@ float
+ 178:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 515              		.loc 1 178 0
+ 516 0372 1846     		mov	r0, r3	@ float
+ 517 0374 FFF7FEFF 		bl	__aeabi_f2d
+ 518 0378 8046     		mov	r8, r0
+ 519 037a 8946     		mov	r9, r1
+ 520              		.loc 1 188 0
+ 521 037c FFF7FEFF 		bl	getMagnetZf
+ 522 0380 0346     		mov	r3, r0	@ float
+ 178:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 523              		.loc 1 178 0
+ 524 0382 1846     		mov	r0, r3	@ float
+ 525 0384 FFF7FEFF 		bl	__aeabi_f2d
+ 526 0388 0246     		mov	r2, r0
+ 527 038a 0B46     		mov	r3, r1
+ 528 038c CDE90089 		strd	r8, [sp]
+ 529 0390 CDE90223 		strd	r2, [sp, #8]
+ 530 0394 40F20000 		movw	r0, #:lower16:json_data
+ 531 0398 C0F20000 		movt	r0, #:upper16:json_data
+ 532 039c 40F20001 		movw	r1, #:lower16:.LC5
+ 533 03a0 C0F20001 		movt	r1, #:upper16:.LC5
+ 534 03a4 2246     		mov	r2, r4
+ 535 03a6 2B46     		mov	r3, r5
+ 536 03a8 FFF7FEFF 		bl	sprintf
+ 189:../SendMeasurementsToBt.c **** 
+ 190:../SendMeasurementsToBt.c **** 		if(0 == turnedOnSentTimer)
+ 537              		.loc 1 190 0
+ 538 03ac 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 539 03b0 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 540 03b4 1B68     		ldr	r3, [r3, #0]
+ 541 03b6 002B     		cmp	r3, #0
+ 542 03b8 20D1     		bne	.L13
+ 191:../SendMeasurementsToBt.c **** 		{
+ 192:../SendMeasurementsToBt.c **** 			TimerIdSentMsg = SYSTM001_CreateTimer(SEND_DELAY,SYSTM001_PERIODIC,sendMsgLSM9DS1,NULL);
+ 543              		.loc 1 192 0
+ 544 03ba 4FF03C00 		mov	r0, #60
+ 545 03be 4FF00101 		mov	r1, #1
+ 546 03c2 40F20002 		movw	r2, #:lower16:sendMsgLSM9DS1
+ 547 03c6 C0F20002 		movt	r2, #:upper16:sendMsgLSM9DS1
+ 548 03ca 4FF00003 		mov	r3, #0
+ 549 03ce FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 550 03d2 0246     		mov	r2, r0
+ 551 03d4 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 552 03d8 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 553 03dc 1A60     		str	r2, [r3, #0]
+ 193:../SendMeasurementsToBt.c **** 			SYSTM001_StartTimer(TimerIdSentMsg);
+ 554              		.loc 1 193 0
+ 555 03de 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 556 03e2 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 557 03e6 1B68     		ldr	r3, [r3, #0]
+ 558 03e8 1846     		mov	r0, r3
+ 559 03ea FFF7FEFF 		bl	SYSTM001_StartTimer
+ 194:../SendMeasurementsToBt.c **** 			turnedOnSentTimer = 1;
+ 560              		.loc 1 194 0
+ 561 03ee 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 562 03f2 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 563 03f6 4FF00102 		mov	r2, #1
+ 564 03fa 1A60     		str	r2, [r3, #0]
+ 565              	.L13:
+ 195:../SendMeasurementsToBt.c **** 		}
+ 196:../SendMeasurementsToBt.c **** 
+ 197:../SendMeasurementsToBt.c **** 		if(1 == turnedOnSentTimer)
+ 566              		.loc 1 197 0
+ 567 03fc 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 568 0400 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 569 0404 1B68     		ldr	r3, [r3, #0]
+ 570 0406 012B     		cmp	r3, #1
+ 571 0408 40F0B883 		bne	.L1
+ 198:../SendMeasurementsToBt.c **** 		{
+ 199:../SendMeasurementsToBt.c **** 			if(TRUE == connectionFailure)
+ 572              		.loc 1 199 0
+ 573 040c 40F20003 		movw	r3, #:lower16:connectionFailure
+ 574 0410 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 575 0414 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 576 0416 012B     		cmp	r3, #1
+ 577 0418 40F0B083 		bne	.L1
+ 200:../SendMeasurementsToBt.c **** 			{
+ 201:../SendMeasurementsToBt.c **** 				connectionFailure = FALSE;
+ 578              		.loc 1 201 0
+ 579 041c 40F20003 		movw	r3, #:lower16:connectionFailure
+ 580 0420 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 581 0424 4FF00002 		mov	r2, #0
+ 582 0428 1A70     		strb	r2, [r3, #0]
+ 202:../SendMeasurementsToBt.c **** 
+ 203:../SendMeasurementsToBt.c **** 				//resetMeasurements();
+ 204:../SendMeasurementsToBt.c **** 
+ 205:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 206:../SendMeasurementsToBt.c **** 				if(i != 0)
+ 583              		.loc 1 206 0
+ 584 042a 40F20003 		movw	r3, #:lower16:i.9653
+ 585 042e C0F20003 		movt	r3, #:upper16:i.9653
+ 586 0432 1B68     		ldr	r3, [r3, #0]
+ 587 0434 002B     		cmp	r3, #0
+ 588 0436 08D0     		beq	.L14
+ 207:../SendMeasurementsToBt.c **** 				{
+ 208:../SendMeasurementsToBt.c **** 					resetMeasurements();
+ 589              		.loc 1 208 0
+ 590 0438 FFF7FEFF 		bl	resetMeasurements
+ 209:../SendMeasurementsToBt.c **** 					i = 0;
+ 591              		.loc 1 209 0
+ 592 043c 40F20003 		movw	r3, #:lower16:i.9653
+ 593 0440 C0F20003 		movt	r3, #:upper16:i.9653
+ 594 0444 4FF00002 		mov	r2, #0
+ 595 0448 1A60     		str	r2, [r3, #0]
+ 596              	.L14:
+ 210:../SendMeasurementsToBt.c **** 				}
+ 211:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 212:../SendMeasurementsToBt.c **** 
+ 213:../SendMeasurementsToBt.c **** 				SYSTM001_StopTimer(TimerIdSentMsg);
+ 597              		.loc 1 213 0
+ 598 044a 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 599 044e C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 600 0452 1B68     		ldr	r3, [r3, #0]
+ 601 0454 1846     		mov	r0, r3
+ 602 0456 FFF7FEFF 		bl	SYSTM001_StopTimer
+ 214:../SendMeasurementsToBt.c **** 
+ 215:../SendMeasurementsToBt.c **** 				SYSTM001_DeleteTimer(TimerIdSentMsg);
+ 603              		.loc 1 215 0
+ 604 045a 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 605 045e C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 606 0462 1B68     		ldr	r3, [r3, #0]
+ 607 0464 1846     		mov	r0, r3
+ 608 0466 FFF7FEFF 		bl	SYSTM001_DeleteTimer
+ 216:../SendMeasurementsToBt.c **** 
+ 217:../SendMeasurementsToBt.c **** 				//i = 0;
+ 218:../SendMeasurementsToBt.c **** 				TimerIdSentMsg = 0;
+ 609              		.loc 1 218 0
+ 610 046a 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 611 046e C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 612 0472 4FF00002 		mov	r2, #0
+ 613 0476 1A60     		str	r2, [r3, #0]
+ 219:../SendMeasurementsToBt.c **** 				cleanArray();
+ 614              		.loc 1 219 0
+ 615 0478 FFF7FEFF 		bl	cleanArray
+ 616 047c 7EE3     		b	.L1
+ 617              	.L11:
+ 220:../SendMeasurementsToBt.c **** 
+ 221:../SendMeasurementsToBt.c **** 			}
+ 222:../SendMeasurementsToBt.c **** 		}
+ 223:../SendMeasurementsToBt.c **** 	}
+ 224:../SendMeasurementsToBt.c **** 	else if(!strcmp(device, "Temperature"))
+ 618              		.loc 1 224 0
+ 619 047e 40F20000 		movw	r0, #:lower16:device
+ 620 0482 C0F20000 		movt	r0, #:upper16:device
+ 621 0486 40F20001 		movw	r1, #:lower16:.LC6
+ 622 048a C0F20001 		movt	r1, #:upper16:.LC6
+ 623 048e FFF7FEFF 		bl	strcmp
+ 624 0492 0346     		mov	r3, r0
+ 625 0494 002B     		cmp	r3, #0
+ 626 0496 40F08E80 		bne	.L15
+ 627              	.LBB2:
+ 225:../SendMeasurementsToBt.c **** 	{
+ 226:../SendMeasurementsToBt.c **** 		if(0 == i){
+ 628              		.loc 1 226 0
+ 629 049a 40F20003 		movw	r3, #:lower16:i.9653
+ 630 049e C0F20003 		movt	r3, #:upper16:i.9653
+ 631 04a2 1B68     		ldr	r3, [r3, #0]
+ 632 04a4 002B     		cmp	r3, #0
+ 633 04a6 0BD1     		bne	.L16
+ 227:../SendMeasurementsToBt.c **** 			//startMeasurements();
+ 228:../SendMeasurementsToBt.c **** 			++i;
+ 634              		.loc 1 228 0
+ 635 04a8 40F20003 		movw	r3, #:lower16:i.9653
+ 636 04ac C0F20003 		movt	r3, #:upper16:i.9653
+ 637 04b0 1B68     		ldr	r3, [r3, #0]
+ 638 04b2 03F10102 		add	r2, r3, #1
+ 639 04b6 40F20003 		movw	r3, #:lower16:i.9653
+ 640 04ba C0F20003 		movt	r3, #:upper16:i.9653
+ 641 04be 1A60     		str	r2, [r3, #0]
+ 642              	.L16:
+ 229:../SendMeasurementsToBt.c **** 		}
+ 230:../SendMeasurementsToBt.c **** 		//readAndSendMeasurements(NULL);
+ 231:../SendMeasurementsToBt.c **** 
+ 232:../SendMeasurementsToBt.c **** 		float temp = readTemperature();
+ 643              		.loc 1 232 0
+ 644 04c0 FFF7FEFF 		bl	readTemperature
+ 645 04c4 7860     		str	r0, [r7, #4]	@ float
+ 233:../SendMeasurementsToBt.c **** 
+ 234:../SendMeasurementsToBt.c **** 		//sprintf(humidity, "%.2f ", temp);
+ 235:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 646              		.loc 1 235 0
+ 647 04c6 7868     		ldr	r0, [r7, #4]	@ float
+ 648 04c8 FFF7FEFF 		bl	__aeabi_f2d
+ 649 04cc 0246     		mov	r2, r0
+ 650 04ce 0B46     		mov	r3, r1
+ 651 04d0 40F20000 		movw	r0, #:lower16:json_data
+ 652 04d4 C0F20000 		movt	r0, #:upper16:json_data
+ 653 04d8 40F20001 		movw	r1, #:lower16:.LC7
+ 654 04dc C0F20001 		movt	r1, #:upper16:.LC7
+ 655 04e0 FFF7FEFF 		bl	sprintf
+ 236:../SendMeasurementsToBt.c **** 								"\"m\":"
+ 237:../SendMeasurementsToBt.c **** 								"["
+ 238:../SendMeasurementsToBt.c **** 										"{"
+ 239:../SendMeasurementsToBt.c **** 											"\"id\":t,"
+ 240:../SendMeasurementsToBt.c **** 											"\"x\":%.2f"
+ 241:../SendMeasurementsToBt.c **** 										"}"
+ 242:../SendMeasurementsToBt.c **** 								"]"
+ 243:../SendMeasurementsToBt.c **** 							"}", temp);
+ 244:../SendMeasurementsToBt.c **** 
+ 245:../SendMeasurementsToBt.c **** 
+ 246:../SendMeasurementsToBt.c **** 		if(0 == turnedOnSentTimer)
+ 656              		.loc 1 246 0
+ 657 04e4 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 658 04e8 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 659 04ec 1B68     		ldr	r3, [r3, #0]
+ 660 04ee 002B     		cmp	r3, #0
+ 661 04f0 20D1     		bne	.L17
+ 247:../SendMeasurementsToBt.c **** 		{
+ 248:../SendMeasurementsToBt.c **** 			//TimerIdSentMsg = SYSTM001_CreateTimer(30,SYSTM001_PERIODIC,sendMsgLSM9DS1,NULL);
+ 249:../SendMeasurementsToBt.c **** 			TimerIdSentMsg = SYSTM001_CreateTimer(30,SYSTM001_PERIODIC,sendMsgHTU21D,NULL);
+ 662              		.loc 1 249 0
+ 663 04f2 4FF01E00 		mov	r0, #30
+ 664 04f6 4FF00101 		mov	r1, #1
+ 665 04fa 40F20002 		movw	r2, #:lower16:sendMsgHTU21D
+ 666 04fe C0F20002 		movt	r2, #:upper16:sendMsgHTU21D
+ 667 0502 4FF00003 		mov	r3, #0
+ 668 0506 FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 669 050a 0246     		mov	r2, r0
+ 670 050c 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 671 0510 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 672 0514 1A60     		str	r2, [r3, #0]
+ 250:../SendMeasurementsToBt.c **** 			SYSTM001_StartTimer(TimerIdSentMsg);
+ 673              		.loc 1 250 0
+ 674 0516 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 675 051a C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 676 051e 1B68     		ldr	r3, [r3, #0]
+ 677 0520 1846     		mov	r0, r3
+ 678 0522 FFF7FEFF 		bl	SYSTM001_StartTimer
+ 251:../SendMeasurementsToBt.c **** 			turnedOnSentTimer = 1;
+ 679              		.loc 1 251 0
+ 680 0526 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 681 052a C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 682 052e 4FF00102 		mov	r2, #1
+ 683 0532 1A60     		str	r2, [r3, #0]
+ 684              	.L17:
+ 252:../SendMeasurementsToBt.c **** 		}
+ 253:../SendMeasurementsToBt.c **** 
+ 254:../SendMeasurementsToBt.c **** 		if(1 == turnedOnSentTimer)
+ 685              		.loc 1 254 0
+ 686 0534 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 687 0538 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 688 053c 1B68     		ldr	r3, [r3, #0]
+ 689 053e 012B     		cmp	r3, #1
+ 690 0540 40F01C83 		bne	.L1
+ 255:../SendMeasurementsToBt.c **** 		{
+ 256:../SendMeasurementsToBt.c **** 			if(TRUE == connectionFailure)
+ 691              		.loc 1 256 0
+ 692 0544 40F20003 		movw	r3, #:lower16:connectionFailure
+ 693 0548 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 694 054c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 695 054e 012B     		cmp	r3, #1
+ 696 0550 40F01483 		bne	.L1
+ 257:../SendMeasurementsToBt.c **** 			{
+ 258:../SendMeasurementsToBt.c **** 				connectionFailure = FALSE;
+ 697              		.loc 1 258 0
+ 698 0554 40F20003 		movw	r3, #:lower16:connectionFailure
+ 699 0558 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 700 055c 4FF00002 		mov	r2, #0
+ 701 0560 1A70     		strb	r2, [r3, #0]
+ 259:../SendMeasurementsToBt.c **** 
+ 260:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 261:../SendMeasurementsToBt.c **** 				if(i != 0)
+ 702              		.loc 1 261 0
+ 703 0562 40F20003 		movw	r3, #:lower16:i.9653
+ 704 0566 C0F20003 		movt	r3, #:upper16:i.9653
+ 705 056a 1B68     		ldr	r3, [r3, #0]
+ 706 056c 002B     		cmp	r3, #0
+ 707 056e 08D0     		beq	.L18
+ 262:../SendMeasurementsToBt.c **** 				{
+ 263:../SendMeasurementsToBt.c **** 					resetMeasurements();
+ 708              		.loc 1 263 0
+ 709 0570 FFF7FEFF 		bl	resetMeasurements
+ 264:../SendMeasurementsToBt.c **** 					i = 0;
+ 710              		.loc 1 264 0
+ 711 0574 40F20003 		movw	r3, #:lower16:i.9653
+ 712 0578 C0F20003 		movt	r3, #:upper16:i.9653
+ 713 057c 4FF00002 		mov	r2, #0
+ 714 0580 1A60     		str	r2, [r3, #0]
+ 715              	.L18:
+ 265:../SendMeasurementsToBt.c **** 				}
+ 266:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 267:../SendMeasurementsToBt.c **** 
+ 268:../SendMeasurementsToBt.c **** 				SYSTM001_StopTimer(TimerIdSentMsg);
+ 716              		.loc 1 268 0
+ 717 0582 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 718 0586 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 719 058a 1B68     		ldr	r3, [r3, #0]
+ 720 058c 1846     		mov	r0, r3
+ 721 058e FFF7FEFF 		bl	SYSTM001_StopTimer
+ 269:../SendMeasurementsToBt.c **** 
+ 270:../SendMeasurementsToBt.c **** 				SYSTM001_DeleteTimer(TimerIdSentMsg);
+ 722              		.loc 1 270 0
+ 723 0592 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 724 0596 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 725 059a 1B68     		ldr	r3, [r3, #0]
+ 726 059c 1846     		mov	r0, r3
+ 727 059e FFF7FEFF 		bl	SYSTM001_DeleteTimer
+ 271:../SendMeasurementsToBt.c **** 
+ 272:../SendMeasurementsToBt.c **** 				TimerIdSentMsg = 0;
+ 728              		.loc 1 272 0
+ 729 05a2 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 730 05a6 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 731 05aa 4FF00002 		mov	r2, #0
+ 732 05ae 1A60     		str	r2, [r3, #0]
+ 273:../SendMeasurementsToBt.c **** 				cleanArray();
+ 733              		.loc 1 273 0
+ 734 05b0 FFF7FEFF 		bl	cleanArray
+ 735 05b4 E2E2     		b	.L1
+ 736              	.L15:
+ 737              	.LBE2:
+ 274:../SendMeasurementsToBt.c **** 
+ 275:../SendMeasurementsToBt.c **** 			}
+ 276:../SendMeasurementsToBt.c **** 		}
+ 277:../SendMeasurementsToBt.c **** 	}
+ 278:../SendMeasurementsToBt.c **** 	else if(!strcmp(device, "Humidity"))
+ 738              		.loc 1 278 0
+ 739 05b6 40F20000 		movw	r0, #:lower16:device
+ 740 05ba C0F20000 		movt	r0, #:upper16:device
+ 741 05be 40F20001 		movw	r1, #:lower16:.LC8
+ 742 05c2 C0F20001 		movt	r1, #:upper16:.LC8
+ 743 05c6 FFF7FEFF 		bl	strcmp
+ 744 05ca 0346     		mov	r3, r0
+ 745 05cc 002B     		cmp	r3, #0
+ 746 05ce 40F08E80 		bne	.L19
+ 747              	.LBB3:
+ 279:../SendMeasurementsToBt.c **** 	{
+ 280:../SendMeasurementsToBt.c **** 		if(0 == i){
+ 748              		.loc 1 280 0
+ 749 05d2 40F20003 		movw	r3, #:lower16:i.9653
+ 750 05d6 C0F20003 		movt	r3, #:upper16:i.9653
+ 751 05da 1B68     		ldr	r3, [r3, #0]
+ 752 05dc 002B     		cmp	r3, #0
+ 753 05de 0BD1     		bne	.L20
+ 281:../SendMeasurementsToBt.c **** 			//startMeasurements();
+ 282:../SendMeasurementsToBt.c **** 			++i;
+ 754              		.loc 1 282 0
+ 755 05e0 40F20003 		movw	r3, #:lower16:i.9653
+ 756 05e4 C0F20003 		movt	r3, #:upper16:i.9653
+ 757 05e8 1B68     		ldr	r3, [r3, #0]
+ 758 05ea 03F10102 		add	r2, r3, #1
+ 759 05ee 40F20003 		movw	r3, #:lower16:i.9653
+ 760 05f2 C0F20003 		movt	r3, #:upper16:i.9653
+ 761 05f6 1A60     		str	r2, [r3, #0]
+ 762              	.L20:
+ 283:../SendMeasurementsToBt.c **** 		}
+ 284:../SendMeasurementsToBt.c **** 		//readAndSendMeasurements(NULL);
+ 285:../SendMeasurementsToBt.c **** 
+ 286:../SendMeasurementsToBt.c **** 		float hum = readHumidity();
+ 763              		.loc 1 286 0
+ 764 05f8 FFF7FEFF 		bl	readHumidity
+ 765 05fc 3860     		str	r0, [r7, #0]	@ float
+ 287:../SendMeasurementsToBt.c **** 
+ 288:../SendMeasurementsToBt.c **** 		//sprintf(humidity, "%.2f ", temp);
+ 289:../SendMeasurementsToBt.c **** 
+ 290:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 766              		.loc 1 290 0
+ 767 05fe 3868     		ldr	r0, [r7, #0]	@ float
+ 768 0600 FFF7FEFF 		bl	__aeabi_f2d
+ 769 0604 0246     		mov	r2, r0
+ 770 0606 0B46     		mov	r3, r1
+ 771 0608 40F20000 		movw	r0, #:lower16:json_data
+ 772 060c C0F20000 		movt	r0, #:upper16:json_data
+ 773 0610 40F20001 		movw	r1, #:lower16:.LC9
+ 774 0614 C0F20001 		movt	r1, #:upper16:.LC9
+ 775 0618 FFF7FEFF 		bl	sprintf
+ 291:../SendMeasurementsToBt.c **** 								"\"m\":"
+ 292:../SendMeasurementsToBt.c **** 								"["
+ 293:../SendMeasurementsToBt.c **** 										"{"
+ 294:../SendMeasurementsToBt.c **** 											"\"id\":h,"
+ 295:../SendMeasurementsToBt.c **** 											"\"x\":%.2f"
+ 296:../SendMeasurementsToBt.c **** 										"}"
+ 297:../SendMeasurementsToBt.c **** 								"]"
+ 298:../SendMeasurementsToBt.c **** 							"}", hum);
+ 299:../SendMeasurementsToBt.c **** 
+ 300:../SendMeasurementsToBt.c **** 
+ 301:../SendMeasurementsToBt.c **** 		if(0 == turnedOnSentTimer)
+ 776              		.loc 1 301 0
+ 777 061c 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 778 0620 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 779 0624 1B68     		ldr	r3, [r3, #0]
+ 780 0626 002B     		cmp	r3, #0
+ 781 0628 20D1     		bne	.L21
+ 302:../SendMeasurementsToBt.c **** 		{
+ 303:../SendMeasurementsToBt.c **** 			//TimerIdSentMsg = SYSTM001_CreateTimer(30,SYSTM001_PERIODIC,sendMsgLSM9DS1,NULL);
+ 304:../SendMeasurementsToBt.c **** 			TimerIdSentMsg = SYSTM001_CreateTimer(30,SYSTM001_PERIODIC,sendMsgHTU21D,NULL);
+ 782              		.loc 1 304 0
+ 783 062a 4FF01E00 		mov	r0, #30
+ 784 062e 4FF00101 		mov	r1, #1
+ 785 0632 40F20002 		movw	r2, #:lower16:sendMsgHTU21D
+ 786 0636 C0F20002 		movt	r2, #:upper16:sendMsgHTU21D
+ 787 063a 4FF00003 		mov	r3, #0
+ 788 063e FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 789 0642 0246     		mov	r2, r0
+ 790 0644 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 791 0648 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 792 064c 1A60     		str	r2, [r3, #0]
+ 305:../SendMeasurementsToBt.c **** 			SYSTM001_StartTimer(TimerIdSentMsg);
+ 793              		.loc 1 305 0
+ 794 064e 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 795 0652 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 796 0656 1B68     		ldr	r3, [r3, #0]
+ 797 0658 1846     		mov	r0, r3
+ 798 065a FFF7FEFF 		bl	SYSTM001_StartTimer
+ 306:../SendMeasurementsToBt.c **** 			turnedOnSentTimer = 1;
+ 799              		.loc 1 306 0
+ 800 065e 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 801 0662 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 802 0666 4FF00102 		mov	r2, #1
+ 803 066a 1A60     		str	r2, [r3, #0]
+ 804              	.L21:
+ 307:../SendMeasurementsToBt.c **** 		}
+ 308:../SendMeasurementsToBt.c **** 
+ 309:../SendMeasurementsToBt.c **** 		if(1 == turnedOnSentTimer)
+ 805              		.loc 1 309 0
+ 806 066c 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 807 0670 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 808 0674 1B68     		ldr	r3, [r3, #0]
+ 809 0676 012B     		cmp	r3, #1
+ 810 0678 40F08082 		bne	.L1
+ 310:../SendMeasurementsToBt.c **** 		{
+ 311:../SendMeasurementsToBt.c **** 			if(TRUE == connectionFailure)
+ 811              		.loc 1 311 0
+ 812 067c 40F20003 		movw	r3, #:lower16:connectionFailure
+ 813 0680 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 814 0684 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 815 0686 012B     		cmp	r3, #1
+ 816 0688 40F07882 		bne	.L1
+ 312:../SendMeasurementsToBt.c **** 			{
+ 313:../SendMeasurementsToBt.c **** 				connectionFailure = FALSE;
+ 817              		.loc 1 313 0
+ 818 068c 40F20003 		movw	r3, #:lower16:connectionFailure
+ 819 0690 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 820 0694 4FF00002 		mov	r2, #0
+ 821 0698 1A70     		strb	r2, [r3, #0]
+ 314:../SendMeasurementsToBt.c **** 
+ 315:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 316:../SendMeasurementsToBt.c **** 				if(i != 0)
+ 822              		.loc 1 316 0
+ 823 069a 40F20003 		movw	r3, #:lower16:i.9653
+ 824 069e C0F20003 		movt	r3, #:upper16:i.9653
+ 825 06a2 1B68     		ldr	r3, [r3, #0]
+ 826 06a4 002B     		cmp	r3, #0
+ 827 06a6 08D0     		beq	.L22
+ 317:../SendMeasurementsToBt.c **** 				{
+ 318:../SendMeasurementsToBt.c **** 					resetMeasurements();
+ 828              		.loc 1 318 0
+ 829 06a8 FFF7FEFF 		bl	resetMeasurements
+ 319:../SendMeasurementsToBt.c **** 					i = 0;
+ 830              		.loc 1 319 0
+ 831 06ac 40F20003 		movw	r3, #:lower16:i.9653
+ 832 06b0 C0F20003 		movt	r3, #:upper16:i.9653
+ 833 06b4 4FF00002 		mov	r2, #0
+ 834 06b8 1A60     		str	r2, [r3, #0]
+ 835              	.L22:
+ 320:../SendMeasurementsToBt.c **** 				}
+ 321:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 322:../SendMeasurementsToBt.c **** 
+ 323:../SendMeasurementsToBt.c **** 				SYSTM001_StopTimer(TimerIdSentMsg);
+ 836              		.loc 1 323 0
+ 837 06ba 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 838 06be C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 839 06c2 1B68     		ldr	r3, [r3, #0]
+ 840 06c4 1846     		mov	r0, r3
+ 841 06c6 FFF7FEFF 		bl	SYSTM001_StopTimer
+ 324:../SendMeasurementsToBt.c **** 
+ 325:../SendMeasurementsToBt.c **** 				SYSTM001_DeleteTimer(TimerIdSentMsg);
+ 842              		.loc 1 325 0
+ 843 06ca 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 844 06ce C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 845 06d2 1B68     		ldr	r3, [r3, #0]
+ 846 06d4 1846     		mov	r0, r3
+ 847 06d6 FFF7FEFF 		bl	SYSTM001_DeleteTimer
+ 326:../SendMeasurementsToBt.c **** 
+ 327:../SendMeasurementsToBt.c **** 				TimerIdSentMsg = 0;
+ 848              		.loc 1 327 0
+ 849 06da 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 850 06de C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 851 06e2 4FF00002 		mov	r2, #0
+ 852 06e6 1A60     		str	r2, [r3, #0]
+ 328:../SendMeasurementsToBt.c **** 				cleanArray();
+ 853              		.loc 1 328 0
+ 854 06e8 FFF7FEFF 		bl	cleanArray
+ 855 06ec 46E2     		b	.L1
+ 856              	.L19:
+ 857              	.LBE3:
+ 329:../SendMeasurementsToBt.c **** 
+ 330:../SendMeasurementsToBt.c **** 			}
+ 331:../SendMeasurementsToBt.c **** 		}
+ 332:../SendMeasurementsToBt.c **** 	}
+ 333:../SendMeasurementsToBt.c **** 	else if(!strcmp(device, "TSL2561"))
+ 858              		.loc 1 333 0
+ 859 06ee 40F20000 		movw	r0, #:lower16:device
+ 860 06f2 C0F20000 		movt	r0, #:upper16:device
+ 861 06f6 40F20001 		movw	r1, #:lower16:.LC10
+ 862 06fa C0F20001 		movt	r1, #:upper16:.LC10
+ 863 06fe FFF7FEFF 		bl	strcmp
+ 864 0702 0346     		mov	r3, r0
+ 865 0704 002B     		cmp	r3, #0
+ 866 0706 40F08C80 		bne	.L23
+ 334:../SendMeasurementsToBt.c **** 	{
+ 335:../SendMeasurementsToBt.c **** 		if(0 == i){
+ 867              		.loc 1 335 0
+ 868 070a 40F20003 		movw	r3, #:lower16:i.9653
+ 869 070e C0F20003 		movt	r3, #:upper16:i.9653
+ 870 0712 1B68     		ldr	r3, [r3, #0]
+ 871 0714 002B     		cmp	r3, #0
+ 872 0716 0DD1     		bne	.L24
+ 336:../SendMeasurementsToBt.c **** 			//startMeasurements();
+ 337:../SendMeasurementsToBt.c **** 			startMeasurementsTSL2561();
+ 873              		.loc 1 337 0
+ 874 0718 FFF7FEFF 		bl	startMeasurementsTSL2561
+ 338:../SendMeasurementsToBt.c **** 			++i;
+ 875              		.loc 1 338 0
+ 876 071c 40F20003 		movw	r3, #:lower16:i.9653
+ 877 0720 C0F20003 		movt	r3, #:upper16:i.9653
+ 878 0724 1B68     		ldr	r3, [r3, #0]
+ 879 0726 03F10102 		add	r2, r3, #1
+ 880 072a 40F20003 		movw	r3, #:lower16:i.9653
+ 881 072e C0F20003 		movt	r3, #:upper16:i.9653
+ 882 0732 1A60     		str	r2, [r3, #0]
+ 883              	.L24:
+ 339:../SendMeasurementsToBt.c **** 		}
+ 340:../SendMeasurementsToBt.c **** 		//readAndSendMeasurements(NULL);
+ 341:../SendMeasurementsToBt.c **** 
+ 342:../SendMeasurementsToBt.c **** 		//float hum = readHumidity();
+ 343:../SendMeasurementsToBt.c **** 
+ 344:../SendMeasurementsToBt.c **** 		//sprintf(humidity, "%.2f ", temp);
+ 345:../SendMeasurementsToBt.c **** 
+ 346:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 884              		.loc 1 346 0
+ 885 0734 FFF7FEFF 		bl	getLuminosity
+ 886 0738 0246     		mov	r2, r0
+ 887 073a 0B46     		mov	r3, r1
+ 888 073c 40F20000 		movw	r0, #:lower16:json_data
+ 889 0740 C0F20000 		movt	r0, #:upper16:json_data
+ 890 0744 40F20001 		movw	r1, #:lower16:.LC11
+ 891 0748 C0F20001 		movt	r1, #:upper16:.LC11
+ 892 074c FFF7FEFF 		bl	sprintf
+ 347:../SendMeasurementsToBt.c **** 								"\"m\":"
+ 348:../SendMeasurementsToBt.c **** 								"["
+ 349:../SendMeasurementsToBt.c **** 										"{"
+ 350:../SendMeasurementsToBt.c **** 											"\"id\":l,"
+ 351:../SendMeasurementsToBt.c **** 											"\"x\":%.2f"
+ 352:../SendMeasurementsToBt.c **** 										"}"
+ 353:../SendMeasurementsToBt.c **** 								"]"
+ 354:../SendMeasurementsToBt.c **** 							"}", getLuminosity());
+ 355:../SendMeasurementsToBt.c **** 
+ 356:../SendMeasurementsToBt.c **** 
+ 357:../SendMeasurementsToBt.c **** 		if(0 == turnedOnSentTimer)
+ 893              		.loc 1 357 0
+ 894 0750 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 895 0754 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 896 0758 1B68     		ldr	r3, [r3, #0]
+ 897 075a 002B     		cmp	r3, #0
+ 898 075c 20D1     		bne	.L25
+ 358:../SendMeasurementsToBt.c **** 		{
+ 359:../SendMeasurementsToBt.c **** 			//TimerIdSentMsg = SYSTM001_CreateTimer(30,SYSTM001_PERIODIC,sendMsgLSM9DS1,NULL);
+ 360:../SendMeasurementsToBt.c **** 			TimerIdSentMsg = SYSTM001_CreateTimer(30,SYSTM001_PERIODIC,sendTSL2561,NULL);
+ 899              		.loc 1 360 0
+ 900 075e 4FF01E00 		mov	r0, #30
+ 901 0762 4FF00101 		mov	r1, #1
+ 902 0766 40F20002 		movw	r2, #:lower16:sendTSL2561
+ 903 076a C0F20002 		movt	r2, #:upper16:sendTSL2561
+ 904 076e 4FF00003 		mov	r3, #0
+ 905 0772 FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 906 0776 0246     		mov	r2, r0
+ 907 0778 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 908 077c C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 909 0780 1A60     		str	r2, [r3, #0]
+ 361:../SendMeasurementsToBt.c **** 			SYSTM001_StartTimer(TimerIdSentMsg);
+ 910              		.loc 1 361 0
+ 911 0782 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 912 0786 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 913 078a 1B68     		ldr	r3, [r3, #0]
+ 914 078c 1846     		mov	r0, r3
+ 915 078e FFF7FEFF 		bl	SYSTM001_StartTimer
+ 362:../SendMeasurementsToBt.c **** 			turnedOnSentTimer = 1;
+ 916              		.loc 1 362 0
+ 917 0792 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 918 0796 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 919 079a 4FF00102 		mov	r2, #1
+ 920 079e 1A60     		str	r2, [r3, #0]
+ 921              	.L25:
+ 363:../SendMeasurementsToBt.c **** 		}
+ 364:../SendMeasurementsToBt.c **** 
+ 365:../SendMeasurementsToBt.c **** 		if(1 == turnedOnSentTimer)
+ 922              		.loc 1 365 0
+ 923 07a0 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 924 07a4 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 925 07a8 1B68     		ldr	r3, [r3, #0]
+ 926 07aa 012B     		cmp	r3, #1
+ 927 07ac 40F0E681 		bne	.L1
+ 366:../SendMeasurementsToBt.c **** 		{
+ 367:../SendMeasurementsToBt.c **** 			if(TRUE == connectionFailure)
+ 928              		.loc 1 367 0
+ 929 07b0 40F20003 		movw	r3, #:lower16:connectionFailure
+ 930 07b4 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 931 07b8 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 932 07ba 012B     		cmp	r3, #1
+ 933 07bc 40F0DE81 		bne	.L1
+ 368:../SendMeasurementsToBt.c **** 			{
+ 369:../SendMeasurementsToBt.c **** 				connectionFailure = FALSE;
+ 934              		.loc 1 369 0
+ 935 07c0 40F20003 		movw	r3, #:lower16:connectionFailure
+ 936 07c4 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 937 07c8 4FF00002 		mov	r2, #0
+ 938 07cc 1A70     		strb	r2, [r3, #0]
+ 370:../SendMeasurementsToBt.c **** 
+ 371:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 372:../SendMeasurementsToBt.c **** 				if(i != 0)
+ 939              		.loc 1 372 0
+ 940 07ce 40F20003 		movw	r3, #:lower16:i.9653
+ 941 07d2 C0F20003 		movt	r3, #:upper16:i.9653
+ 942 07d6 1B68     		ldr	r3, [r3, #0]
+ 943 07d8 002B     		cmp	r3, #0
+ 944 07da 08D0     		beq	.L26
+ 373:../SendMeasurementsToBt.c **** 				{
+ 374:../SendMeasurementsToBt.c **** 					stopMeasurementsTSL2561();
+ 945              		.loc 1 374 0
+ 946 07dc FFF7FEFF 		bl	stopMeasurementsTSL2561
+ 375:../SendMeasurementsToBt.c **** 					i = 0;
+ 947              		.loc 1 375 0
+ 948 07e0 40F20003 		movw	r3, #:lower16:i.9653
+ 949 07e4 C0F20003 		movt	r3, #:upper16:i.9653
+ 950 07e8 4FF00002 		mov	r2, #0
+ 951 07ec 1A60     		str	r2, [r3, #0]
+ 952              	.L26:
+ 376:../SendMeasurementsToBt.c **** 				}
+ 377:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 378:../SendMeasurementsToBt.c **** 
+ 379:../SendMeasurementsToBt.c **** 				SYSTM001_StopTimer(TimerIdSentMsg);
+ 953              		.loc 1 379 0
+ 954 07ee 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 955 07f2 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 956 07f6 1B68     		ldr	r3, [r3, #0]
+ 957 07f8 1846     		mov	r0, r3
+ 958 07fa FFF7FEFF 		bl	SYSTM001_StopTimer
+ 380:../SendMeasurementsToBt.c **** 
+ 381:../SendMeasurementsToBt.c **** 				SYSTM001_DeleteTimer(TimerIdSentMsg);
+ 959              		.loc 1 381 0
+ 960 07fe 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 961 0802 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 962 0806 1B68     		ldr	r3, [r3, #0]
+ 963 0808 1846     		mov	r0, r3
+ 964 080a FFF7FEFF 		bl	SYSTM001_DeleteTimer
+ 382:../SendMeasurementsToBt.c **** 
+ 383:../SendMeasurementsToBt.c **** 				TimerIdSentMsg = 0;
+ 965              		.loc 1 383 0
+ 966 080e 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 967 0812 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 968 0816 4FF00002 		mov	r2, #0
+ 969 081a 1A60     		str	r2, [r3, #0]
+ 384:../SendMeasurementsToBt.c **** 				cleanArray();
+ 970              		.loc 1 384 0
+ 971 081c FFF7FEFF 		bl	cleanArray
+ 972 0820 ACE1     		b	.L1
+ 973              	.L23:
+ 385:../SendMeasurementsToBt.c **** 			}
+ 386:../SendMeasurementsToBt.c **** 		}
+ 387:../SendMeasurementsToBt.c **** 	}
+ 388:../SendMeasurementsToBt.c **** 	else if(!strcmp(device, "All_sens"))
+ 974              		.loc 1 388 0
+ 975 0822 40F20000 		movw	r0, #:lower16:device
+ 976 0826 C0F20000 		movt	r0, #:upper16:device
+ 977 082a 40F20001 		movw	r1, #:lower16:.LC12
+ 978 082e C0F20001 		movt	r1, #:upper16:.LC12
+ 979 0832 FFF7FEFF 		bl	strcmp
+ 980 0836 0346     		mov	r3, r0
+ 981 0838 002B     		cmp	r3, #0
+ 982 083a 40F09F81 		bne	.L1
+ 389:../SendMeasurementsToBt.c **** 	{
+ 390:../SendMeasurementsToBt.c **** 		if(0 == i){
+ 983              		.loc 1 390 0
+ 984 083e 40F20003 		movw	r3, #:lower16:i.9653
+ 985 0842 C0F20003 		movt	r3, #:upper16:i.9653
+ 986 0846 1B68     		ldr	r3, [r3, #0]
+ 987 0848 002B     		cmp	r3, #0
+ 988 084a 0DD1     		bne	.L27
+ 391:../SendMeasurementsToBt.c **** 			startMeasurements1();
+ 989              		.loc 1 391 0
+ 990 084c FFF7FEFF 		bl	startMeasurements1
+ 392:../SendMeasurementsToBt.c **** 			++i;
+ 991              		.loc 1 392 0
+ 992 0850 40F20003 		movw	r3, #:lower16:i.9653
+ 993 0854 C0F20003 		movt	r3, #:upper16:i.9653
+ 994 0858 1B68     		ldr	r3, [r3, #0]
+ 995 085a 03F10102 		add	r2, r3, #1
+ 996 085e 40F20003 		movw	r3, #:lower16:i.9653
+ 997 0862 C0F20003 		movt	r3, #:upper16:i.9653
+ 998 0866 1A60     		str	r2, [r3, #0]
+ 999              	.L27:
+ 393:../SendMeasurementsToBt.c **** 		}
+ 394:../SendMeasurementsToBt.c **** 		readAndSendMeasurements(NULL);
+ 1000              		.loc 1 394 0
+ 1001 0868 4FF00000 		mov	r0, #0
+ 1002 086c FFF7FEFF 		bl	readAndSendMeasurements
+ 395:../SendMeasurementsToBt.c **** 
+ 396:../SendMeasurementsToBt.c **** 		//acceleration all sensors
+ 397:../SendMeasurementsToBt.c **** 		sprintf(accX, "x%.2f ", getAccelXf());
+ 1003              		.loc 1 397 0
+ 1004 0870 FFF7FEFF 		bl	getAccelXf
+ 1005 0874 0346     		mov	r3, r0	@ float
+ 1006 0876 1846     		mov	r0, r3	@ float
+ 1007 0878 FFF7FEFF 		bl	__aeabi_f2d
+ 1008 087c 0246     		mov	r2, r0
+ 1009 087e 0B46     		mov	r3, r1
+ 1010 0880 40F20000 		movw	r0, #:lower16:accX
+ 1011 0884 C0F20000 		movt	r0, #:upper16:accX
+ 1012 0888 40F20001 		movw	r1, #:lower16:.LC13
+ 1013 088c C0F20001 		movt	r1, #:upper16:.LC13
+ 1014 0890 FFF7FEFF 		bl	sprintf
+ 398:../SendMeasurementsToBt.c **** 
+ 399:../SendMeasurementsToBt.c **** 		sprintf(accY, "y%.2f ", getAccelYf());
+ 1015              		.loc 1 399 0
+ 1016 0894 FFF7FEFF 		bl	getAccelYf
+ 1017 0898 0346     		mov	r3, r0	@ float
+ 1018 089a 1846     		mov	r0, r3	@ float
+ 1019 089c FFF7FEFF 		bl	__aeabi_f2d
+ 1020 08a0 0246     		mov	r2, r0
+ 1021 08a2 0B46     		mov	r3, r1
+ 1022 08a4 40F20000 		movw	r0, #:lower16:accY
+ 1023 08a8 C0F20000 		movt	r0, #:upper16:accY
+ 1024 08ac 40F20001 		movw	r1, #:lower16:.LC14
+ 1025 08b0 C0F20001 		movt	r1, #:upper16:.LC14
+ 1026 08b4 FFF7FEFF 		bl	sprintf
+ 400:../SendMeasurementsToBt.c **** 
+ 401:../SendMeasurementsToBt.c **** 		sprintf(accZ, "z%.2f ", getAccelZf());
+ 1027              		.loc 1 401 0
+ 1028 08b8 FFF7FEFF 		bl	getAccelZf
+ 1029 08bc 0346     		mov	r3, r0	@ float
+ 1030 08be 1846     		mov	r0, r3	@ float
+ 1031 08c0 FFF7FEFF 		bl	__aeabi_f2d
+ 1032 08c4 0246     		mov	r2, r0
+ 1033 08c6 0B46     		mov	r3, r1
+ 1034 08c8 40F20000 		movw	r0, #:lower16:accZ
+ 1035 08cc C0F20000 		movt	r0, #:upper16:accZ
+ 1036 08d0 40F20001 		movw	r1, #:lower16:.LC15
+ 1037 08d4 C0F20001 		movt	r1, #:upper16:.LC15
+ 1038 08d8 FFF7FEFF 		bl	sprintf
+ 402:../SendMeasurementsToBt.c **** 		//acceleration all sensors
+ 403:../SendMeasurementsToBt.c **** 
+ 404:../SendMeasurementsToBt.c **** 		//gyroscope all sensors
+ 405:../SendMeasurementsToBt.c **** 		sprintf(gyrX, "x%.2f ", getGyroXf());
+ 1039              		.loc 1 405 0
+ 1040 08dc FFF7FEFF 		bl	getGyroXf
+ 1041 08e0 0346     		mov	r3, r0	@ float
+ 1042 08e2 1846     		mov	r0, r3	@ float
+ 1043 08e4 FFF7FEFF 		bl	__aeabi_f2d
+ 1044 08e8 0246     		mov	r2, r0
+ 1045 08ea 0B46     		mov	r3, r1
+ 1046 08ec 40F20000 		movw	r0, #:lower16:gyrX
+ 1047 08f0 C0F20000 		movt	r0, #:upper16:gyrX
+ 1048 08f4 40F20001 		movw	r1, #:lower16:.LC13
+ 1049 08f8 C0F20001 		movt	r1, #:upper16:.LC13
+ 1050 08fc FFF7FEFF 		bl	sprintf
+ 406:../SendMeasurementsToBt.c **** 
+ 407:../SendMeasurementsToBt.c **** 		sprintf(gyrY, "y%.2f ", getGyroYf());
+ 1051              		.loc 1 407 0
+ 1052 0900 FFF7FEFF 		bl	getGyroYf
+ 1053 0904 0346     		mov	r3, r0	@ float
+ 1054 0906 1846     		mov	r0, r3	@ float
+ 1055 0908 FFF7FEFF 		bl	__aeabi_f2d
+ 1056 090c 0246     		mov	r2, r0
+ 1057 090e 0B46     		mov	r3, r1
+ 1058 0910 40F20000 		movw	r0, #:lower16:gyrY
+ 1059 0914 C0F20000 		movt	r0, #:upper16:gyrY
+ 1060 0918 40F20001 		movw	r1, #:lower16:.LC14
+ 1061 091c C0F20001 		movt	r1, #:upper16:.LC14
+ 1062 0920 FFF7FEFF 		bl	sprintf
+ 408:../SendMeasurementsToBt.c **** 
+ 409:../SendMeasurementsToBt.c **** 		sprintf(gyrZ, "z%.2f ", getGyroZf());
+ 1063              		.loc 1 409 0
+ 1064 0924 FFF7FEFF 		bl	getGyroZf
+ 1065 0928 0346     		mov	r3, r0	@ float
+ 1066 092a 1846     		mov	r0, r3	@ float
+ 1067 092c FFF7FEFF 		bl	__aeabi_f2d
+ 1068 0930 0246     		mov	r2, r0
+ 1069 0932 0B46     		mov	r3, r1
+ 1070 0934 40F20000 		movw	r0, #:lower16:gyrZ
+ 1071 0938 C0F20000 		movt	r0, #:upper16:gyrZ
+ 1072 093c 40F20001 		movw	r1, #:lower16:.LC15
+ 1073 0940 C0F20001 		movt	r1, #:upper16:.LC15
+ 1074 0944 FFF7FEFF 		bl	sprintf
+ 410:../SendMeasurementsToBt.c **** 		//gyroscope all sensors
+ 411:../SendMeasurementsToBt.c **** 
+ 412:../SendMeasurementsToBt.c **** 		//magnetometer all sensors
+ 413:../SendMeasurementsToBt.c **** 		sprintf(magX, "x%.2f ", getMagnetXf());
+ 1075              		.loc 1 413 0
+ 1076 0948 FFF7FEFF 		bl	getMagnetXf
+ 1077 094c 0346     		mov	r3, r0	@ float
+ 1078 094e 1846     		mov	r0, r3	@ float
+ 1079 0950 FFF7FEFF 		bl	__aeabi_f2d
+ 1080 0954 0246     		mov	r2, r0
+ 1081 0956 0B46     		mov	r3, r1
+ 1082 0958 40F20000 		movw	r0, #:lower16:magX
+ 1083 095c C0F20000 		movt	r0, #:upper16:magX
+ 1084 0960 40F20001 		movw	r1, #:lower16:.LC13
+ 1085 0964 C0F20001 		movt	r1, #:upper16:.LC13
+ 1086 0968 FFF7FEFF 		bl	sprintf
+ 414:../SendMeasurementsToBt.c **** 
+ 415:../SendMeasurementsToBt.c **** 		sprintf(magY, "y%.2f ", getMagnetYf());
+ 1087              		.loc 1 415 0
+ 1088 096c FFF7FEFF 		bl	getMagnetYf
+ 1089 0970 0346     		mov	r3, r0	@ float
+ 1090 0972 1846     		mov	r0, r3	@ float
+ 1091 0974 FFF7FEFF 		bl	__aeabi_f2d
+ 1092 0978 0246     		mov	r2, r0
+ 1093 097a 0B46     		mov	r3, r1
+ 1094 097c 40F20000 		movw	r0, #:lower16:magY
+ 1095 0980 C0F20000 		movt	r0, #:upper16:magY
+ 1096 0984 40F20001 		movw	r1, #:lower16:.LC14
+ 1097 0988 C0F20001 		movt	r1, #:upper16:.LC14
+ 1098 098c FFF7FEFF 		bl	sprintf
+ 416:../SendMeasurementsToBt.c **** 
+ 417:../SendMeasurementsToBt.c **** 		sprintf(magZ, "z%.2f ", getMagnetZf());
+ 1099              		.loc 1 417 0
+ 1100 0990 FFF7FEFF 		bl	getMagnetZf
+ 1101 0994 0346     		mov	r3, r0	@ float
+ 1102 0996 1846     		mov	r0, r3	@ float
+ 1103 0998 FFF7FEFF 		bl	__aeabi_f2d
+ 1104 099c 0246     		mov	r2, r0
+ 1105 099e 0B46     		mov	r3, r1
+ 1106 09a0 40F20000 		movw	r0, #:lower16:magZ
+ 1107 09a4 C0F20000 		movt	r0, #:upper16:magZ
+ 1108 09a8 40F20001 		movw	r1, #:lower16:.LC15
+ 1109 09ac C0F20001 		movt	r1, #:upper16:.LC15
+ 1110 09b0 FFF7FEFF 		bl	sprintf
+ 418:../SendMeasurementsToBt.c **** 		//magnetometer all sensors
+ 419:../SendMeasurementsToBt.c **** 
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 421:../SendMeasurementsToBt.c **** 								"\"m\":"
+ 422:../SendMeasurementsToBt.c **** 								"["
+ 423:../SendMeasurementsToBt.c **** 										"{"
+ 424:../SendMeasurementsToBt.c **** 											"\"id\":a,"
+ 425:../SendMeasurementsToBt.c **** 											"\"x\":%.2f,"
+ 426:../SendMeasurementsToBt.c **** 											"\"y\":%.2f,"
+ 427:../SendMeasurementsToBt.c **** 											"\"z\":%.2f"
+ 428:../SendMeasurementsToBt.c **** 										"},"
+ 429:../SendMeasurementsToBt.c **** 										"{"
+ 430:../SendMeasurementsToBt.c **** 											"\"id\":g,"
+ 431:../SendMeasurementsToBt.c **** 											"\"x\":%.2f,"
+ 432:../SendMeasurementsToBt.c **** 											"\"y\":%.2f,"
+ 433:../SendMeasurementsToBt.c **** 											"\"z\":%.2f"
+ 434:../SendMeasurementsToBt.c **** 										"},"
+ 435:../SendMeasurementsToBt.c **** 										"{"
+ 436:../SendMeasurementsToBt.c **** 											"\"id\":m,"
+ 437:../SendMeasurementsToBt.c **** 											"\"x\":%.2f,"
+ 438:../SendMeasurementsToBt.c **** 											"\"y\":%.2f,"
+ 439:../SendMeasurementsToBt.c **** 											"\"z\":%.2f"
+ 440:../SendMeasurementsToBt.c **** 										"},"
+ 441:../SendMeasurementsToBt.c **** 										"{"
+ 442:../SendMeasurementsToBt.c **** 											"\"id\":t,"
+ 443:../SendMeasurementsToBt.c **** 											"\"x\":%.2f"
+ 444:../SendMeasurementsToBt.c **** 										"},"
+ 445:../SendMeasurementsToBt.c **** 										"{"
+ 446:../SendMeasurementsToBt.c **** 											"\"id\":h,"
+ 447:../SendMeasurementsToBt.c **** 											"\"x\":%.2f"
+ 448:../SendMeasurementsToBt.c **** 										"},"
+ 449:../SendMeasurementsToBt.c **** 										"{"
+ 450:../SendMeasurementsToBt.c **** 											"\"id\":l,"
+ 451:../SendMeasurementsToBt.c **** 											"\"x\":%.2f"
+ 452:../SendMeasurementsToBt.c **** 										"}"
+ 453:../SendMeasurementsToBt.c **** 								"]"
+ 454:../SendMeasurementsToBt.c **** 							"}", getAccelXf(), getAccelYf(), getAccelZf(), getGyroXf(), getGyroYf(), getGyroZf(), getMag
+ 1111              		.loc 1 454 0
+ 1112 09b4 FFF7FEFF 		bl	getAccelXf
+ 1113 09b8 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1114              		.loc 1 420 0
+ 1115 09ba 1846     		mov	r0, r3	@ float
+ 1116 09bc FFF7FEFF 		bl	__aeabi_f2d
+ 1117 09c0 0446     		mov	r4, r0
+ 1118 09c2 0D46     		mov	r5, r1
+ 1119              		.loc 1 454 0
+ 1120 09c4 FFF7FEFF 		bl	getAccelYf
+ 1121 09c8 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1122              		.loc 1 420 0
+ 1123 09ca 1846     		mov	r0, r3	@ float
+ 1124 09cc FFF7FEFF 		bl	__aeabi_f2d
+ 1125 09d0 41EC1F0B 		fmdrr	d15, r0, r1
+ 1126              		.loc 1 454 0
+ 1127 09d4 FFF7FEFF 		bl	getAccelZf
+ 1128 09d8 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1129              		.loc 1 420 0
+ 1130 09da 1846     		mov	r0, r3	@ float
+ 1131 09dc FFF7FEFF 		bl	__aeabi_f2d
+ 1132 09e0 41EC1E0B 		fmdrr	d14, r0, r1
+ 1133              		.loc 1 454 0
+ 1134 09e4 FFF7FEFF 		bl	getGyroXf
+ 1135 09e8 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1136              		.loc 1 420 0
+ 1137 09ea 1846     		mov	r0, r3	@ float
+ 1138 09ec FFF7FEFF 		bl	__aeabi_f2d
+ 1139 09f0 41EC1D0B 		fmdrr	d13, r0, r1
+ 1140              		.loc 1 454 0
+ 1141 09f4 FFF7FEFF 		bl	getGyroYf
+ 1142 09f8 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1143              		.loc 1 420 0
+ 1144 09fa 1846     		mov	r0, r3	@ float
+ 1145 09fc FFF7FEFF 		bl	__aeabi_f2d
+ 1146 0a00 41EC1C0B 		fmdrr	d12, r0, r1
+ 1147              		.loc 1 454 0
+ 1148 0a04 FFF7FEFF 		bl	getGyroZf
+ 1149 0a08 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1150              		.loc 1 420 0
+ 1151 0a0a 1846     		mov	r0, r3	@ float
+ 1152 0a0c FFF7FEFF 		bl	__aeabi_f2d
+ 1153 0a10 41EC1B0B 		fmdrr	d11, r0, r1
+ 1154              		.loc 1 454 0
+ 1155 0a14 FFF7FEFF 		bl	getMagnetXf
+ 1156 0a18 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1157              		.loc 1 420 0
+ 1158 0a1a 1846     		mov	r0, r3	@ float
+ 1159 0a1c FFF7FEFF 		bl	__aeabi_f2d
+ 1160 0a20 41EC1A0B 		fmdrr	d10, r0, r1
+ 1161              		.loc 1 454 0
+ 1162 0a24 FFF7FEFF 		bl	getMagnetYf
+ 1163 0a28 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1164              		.loc 1 420 0
+ 1165 0a2a 1846     		mov	r0, r3	@ float
+ 1166 0a2c FFF7FEFF 		bl	__aeabi_f2d
+ 1167 0a30 41EC190B 		fmdrr	d9, r0, r1
+ 1168              		.loc 1 454 0
+ 1169 0a34 FFF7FEFF 		bl	getMagnetZf
+ 1170 0a38 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1171              		.loc 1 420 0
+ 1172 0a3a 1846     		mov	r0, r3	@ float
+ 1173 0a3c FFF7FEFF 		bl	__aeabi_f2d
+ 1174 0a40 41EC180B 		fmdrr	d8, r0, r1
+ 455:../SendMeasurementsToBt.c **** 							readTemperature(), readHumidity(), getLuminosity());
+ 1175              		.loc 1 455 0
+ 1176 0a44 FFF7FEFF 		bl	readTemperature
+ 1177 0a48 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1178              		.loc 1 420 0
+ 1179 0a4a 1846     		mov	r0, r3	@ float
+ 1180 0a4c FFF7FEFF 		bl	__aeabi_f2d
+ 1181 0a50 8246     		mov	sl, r0
+ 1182 0a52 8B46     		mov	fp, r1
+ 1183              		.loc 1 455 0
+ 1184 0a54 FFF7FEFF 		bl	readHumidity
+ 1185 0a58 0346     		mov	r3, r0	@ float
+ 420:../SendMeasurementsToBt.c **** 		sprintf(json_data, "{"
+ 1186              		.loc 1 420 0
+ 1187 0a5a 1846     		mov	r0, r3	@ float
+ 1188 0a5c FFF7FEFF 		bl	__aeabi_f2d
+ 1189 0a60 8046     		mov	r8, r0
+ 1190 0a62 8946     		mov	r9, r1
+ 1191 0a64 FFF7FEFF 		bl	getLuminosity
+ 1192 0a68 0246     		mov	r2, r0
+ 1193 0a6a 0B46     		mov	r3, r1
+ 1194 0a6c 8DED00FB 		fstd	d15, [sp, #0]
+ 1195 0a70 8DED02EB 		fstd	d14, [sp, #8]
+ 1196 0a74 8DED04DB 		fstd	d13, [sp, #16]
+ 1197 0a78 8DED06CB 		fstd	d12, [sp, #24]
+ 1198 0a7c 8DED08BB 		fstd	d11, [sp, #32]
+ 1199 0a80 8DED0AAB 		fstd	d10, [sp, #40]
+ 1200 0a84 8DED0C9B 		fstd	d9, [sp, #48]
+ 1201 0a88 8DED0E8B 		fstd	d8, [sp, #56]
+ 1202 0a8c CDE910AB 		strd	sl, [sp, #64]
+ 1203 0a90 CDE91289 		strd	r8, [sp, #72]
+ 1204 0a94 CDE91423 		strd	r2, [sp, #80]
+ 1205 0a98 40F20000 		movw	r0, #:lower16:json_data
+ 1206 0a9c C0F20000 		movt	r0, #:upper16:json_data
+ 1207 0aa0 40F20001 		movw	r1, #:lower16:.LC16
+ 1208 0aa4 C0F20001 		movt	r1, #:upper16:.LC16
+ 1209 0aa8 2246     		mov	r2, r4
+ 1210 0aaa 2B46     		mov	r3, r5
+ 1211 0aac FFF7FEFF 		bl	sprintf
+ 456:../SendMeasurementsToBt.c **** 
+ 457:../SendMeasurementsToBt.c **** 		if(0 == turnedOnSentTimer)
+ 1212              		.loc 1 457 0
+ 1213 0ab0 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 1214 0ab4 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 1215 0ab8 1B68     		ldr	r3, [r3, #0]
+ 1216 0aba 002B     		cmp	r3, #0
+ 1217 0abc 20D1     		bne	.L28
+ 458:../SendMeasurementsToBt.c **** 		{
+ 459:../SendMeasurementsToBt.c **** 			TimerIdSentMsg = SYSTM001_CreateTimer(SEND_DELAY,SYSTM001_PERIODIC,sendAllSensors,NULL);
+ 1218              		.loc 1 459 0
+ 1219 0abe 4FF03C00 		mov	r0, #60
+ 1220 0ac2 4FF00101 		mov	r1, #1
+ 1221 0ac6 40F20002 		movw	r2, #:lower16:sendAllSensors
+ 1222 0aca C0F20002 		movt	r2, #:upper16:sendAllSensors
+ 1223 0ace 4FF00003 		mov	r3, #0
+ 1224 0ad2 FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 1225 0ad6 0246     		mov	r2, r0
+ 1226 0ad8 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 1227 0adc C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 1228 0ae0 1A60     		str	r2, [r3, #0]
+ 460:../SendMeasurementsToBt.c **** 			SYSTM001_StartTimer(TimerIdSentMsg);
+ 1229              		.loc 1 460 0
+ 1230 0ae2 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 1231 0ae6 C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 1232 0aea 1B68     		ldr	r3, [r3, #0]
+ 1233 0aec 1846     		mov	r0, r3
+ 1234 0aee FFF7FEFF 		bl	SYSTM001_StartTimer
+ 461:../SendMeasurementsToBt.c **** 			turnedOnSentTimer = 1;
+ 1235              		.loc 1 461 0
+ 1236 0af2 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 1237 0af6 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 1238 0afa 4FF00102 		mov	r2, #1
+ 1239 0afe 1A60     		str	r2, [r3, #0]
+ 1240              	.L28:
+ 462:../SendMeasurementsToBt.c **** 		}
+ 463:../SendMeasurementsToBt.c **** 
+ 464:../SendMeasurementsToBt.c **** 		if(1 == turnedOnSentTimer)
+ 1241              		.loc 1 464 0
+ 1242 0b00 40F20003 		movw	r3, #:lower16:turnedOnSentTimer
+ 1243 0b04 C0F20003 		movt	r3, #:upper16:turnedOnSentTimer
+ 1244 0b08 1B68     		ldr	r3, [r3, #0]
+ 1245 0b0a 012B     		cmp	r3, #1
+ 1246 0b0c 36D1     		bne	.L1
+ 465:../SendMeasurementsToBt.c **** 		{
+ 466:../SendMeasurementsToBt.c **** 			if(TRUE == connectionFailure)
+ 1247              		.loc 1 466 0
+ 1248 0b0e 40F20003 		movw	r3, #:lower16:connectionFailure
+ 1249 0b12 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 1250 0b16 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1251 0b18 012B     		cmp	r3, #1
+ 1252 0b1a 2FD1     		bne	.L1
+ 467:../SendMeasurementsToBt.c **** 			{
+ 468:../SendMeasurementsToBt.c **** 				connectionFailure = FALSE;
+ 1253              		.loc 1 468 0
+ 1254 0b1c 40F20003 		movw	r3, #:lower16:connectionFailure
+ 1255 0b20 C0F20003 		movt	r3, #:upper16:connectionFailure
+ 1256 0b24 4FF00002 		mov	r2, #0
+ 1257 0b28 1A70     		strb	r2, [r3, #0]
+ 469:../SendMeasurementsToBt.c **** 				//resetMeasurements();
+ 470:../SendMeasurementsToBt.c **** 
+ 471:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 472:../SendMeasurementsToBt.c **** 				if(i != 0)
+ 1258              		.loc 1 472 0
+ 1259 0b2a 40F20003 		movw	r3, #:lower16:i.9653
+ 1260 0b2e C0F20003 		movt	r3, #:upper16:i.9653
+ 1261 0b32 1B68     		ldr	r3, [r3, #0]
+ 1262 0b34 002B     		cmp	r3, #0
+ 1263 0b36 08D0     		beq	.L29
+ 473:../SendMeasurementsToBt.c **** 				{
+ 474:../SendMeasurementsToBt.c **** 					resetMeasurements();
+ 1264              		.loc 1 474 0
+ 1265 0b38 FFF7FEFF 		bl	resetMeasurements
+ 475:../SendMeasurementsToBt.c **** 					i = 0;
+ 1266              		.loc 1 475 0
+ 1267 0b3c 40F20003 		movw	r3, #:lower16:i.9653
+ 1268 0b40 C0F20003 		movt	r3, #:upper16:i.9653
+ 1269 0b44 4FF00002 		mov	r2, #0
+ 1270 0b48 1A60     		str	r2, [r3, #0]
+ 1271              	.L29:
+ 476:../SendMeasurementsToBt.c **** 				}
+ 477:../SendMeasurementsToBt.c **** 				//MODIFICATION 04.04.16
+ 478:../SendMeasurementsToBt.c **** 
+ 479:../SendMeasurementsToBt.c **** 				SYSTM001_StopTimer(TimerIdSentMsg);
+ 1272              		.loc 1 479 0
+ 1273 0b4a 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 1274 0b4e C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 1275 0b52 1B68     		ldr	r3, [r3, #0]
+ 1276 0b54 1846     		mov	r0, r3
+ 1277 0b56 FFF7FEFF 		bl	SYSTM001_StopTimer
+ 480:../SendMeasurementsToBt.c **** 
+ 481:../SendMeasurementsToBt.c **** 				SYSTM001_DeleteTimer(TimerIdSentMsg);
+ 1278              		.loc 1 481 0
+ 1279 0b5a 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 1280 0b5e C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 1281 0b62 1B68     		ldr	r3, [r3, #0]
+ 1282 0b64 1846     		mov	r0, r3
+ 1283 0b66 FFF7FEFF 		bl	SYSTM001_DeleteTimer
+ 482:../SendMeasurementsToBt.c **** 
+ 483:../SendMeasurementsToBt.c **** 				//i = 0;
+ 484:../SendMeasurementsToBt.c **** 				TimerIdSentMsg = 0;
+ 1284              		.loc 1 484 0
+ 1285 0b6a 40F20003 		movw	r3, #:lower16:TimerIdSentMsg
+ 1286 0b6e C0F20003 		movt	r3, #:upper16:TimerIdSentMsg
+ 1287 0b72 4FF00002 		mov	r2, #0
+ 1288 0b76 1A60     		str	r2, [r3, #0]
+ 485:../SendMeasurementsToBt.c **** 				cleanArray();
+ 1289              		.loc 1 485 0
+ 1290 0b78 FFF7FEFF 		bl	cleanArray
+ 1291              	.L1:
+ 486:../SendMeasurementsToBt.c **** 
+ 487:../SendMeasurementsToBt.c **** 			}
+ 488:../SendMeasurementsToBt.c **** 		}
+ 489:../SendMeasurementsToBt.c **** 	}
+ 490:../SendMeasurementsToBt.c **** }
+ 1292              		.loc 1 490 0
+ 1293 0b7c 07F10807 		add	r7, r7, #8
+ 1294 0b80 BD46     		mov	sp, r7
+ 1295 0b82 BDEC108B 		fldmfdd	sp!, {d8, d9, d10, d11, d12, d13, d14, d15}
+ 1296 0b86 BDE8B08F 		pop	{r4, r5, r7, r8, r9, sl, fp, pc}
+ 1297              		.cfi_endproc
+ 1298              	.LFE117:
+ 1300 0b8a 00BF     		.section	.text.sendMsgLSM9DS1,"ax",%progbits
+ 1301              		.align	2
+ 1302              		.global	sendMsgLSM9DS1
+ 1303              		.thumb
+ 1304              		.thumb_func
+ 1306              	sendMsgLSM9DS1:
+ 1307              	.LFB118:
+ 491:../SendMeasurementsToBt.c **** 
+ 492:../SendMeasurementsToBt.c **** void sendMsgLSM9DS1(void *T)
+ 493:../SendMeasurementsToBt.c **** {
+ 1308              		.loc 1 493 0
+ 1309              		.cfi_startproc
+ 1310              		@ args = 0, pretend = 0, frame = 8
+ 1311              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1312 0000 80B5     		push	{r7, lr}
+ 1313              	.LCFI4:
+ 1314              		.cfi_def_cfa_offset 8
+ 1315              		.cfi_offset 7, -8
+ 1316              		.cfi_offset 14, -4
+ 1317 0002 82B0     		sub	sp, sp, #8
+ 1318              	.LCFI5:
+ 1319              		.cfi_def_cfa_offset 16
+ 1320 0004 00AF     		add	r7, sp, #0
+ 1321              	.LCFI6:
+ 1322              		.cfi_def_cfa_register 7
+ 1323 0006 7860     		str	r0, [r7, #4]
+ 494:../SendMeasurementsToBt.c **** 	static int i = 0;
+ 495:../SendMeasurementsToBt.c **** 
+ 496:../SendMeasurementsToBt.c **** 	if(copied == 1)
+ 1324              		.loc 1 496 0
+ 1325 0008 40F20003 		movw	r3, #:lower16:copied
+ 1326 000c C0F20003 		movt	r3, #:upper16:copied
+ 1327 0010 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1328 0012 012B     		cmp	r3, #1
+ 1329 0014 0DD1     		bne	.L30
+ 497:../SendMeasurementsToBt.c **** 	{
+ 498:../SendMeasurementsToBt.c **** 		send(json_data, strlen((const char*)json_data));
+ 1330              		.loc 1 498 0
+ 1331 0016 40F20000 		movw	r0, #:lower16:json_data
+ 1332 001a C0F20000 		movt	r0, #:upper16:json_data
+ 1333 001e FFF7FEFF 		bl	strlen
+ 1334 0022 0346     		mov	r3, r0
+ 1335 0024 40F20000 		movw	r0, #:lower16:json_data
+ 1336 0028 C0F20000 		movt	r0, #:upper16:json_data
+ 1337 002c 1946     		mov	r1, r3
+ 1338 002e FFF7FEFF 		bl	send
+ 1339              	.L30:
+ 499:../SendMeasurementsToBt.c **** 		/*if(0 == i){
+ 500:../SendMeasurementsToBt.c **** 			send(xAxisf, strlen((const char*)xAxisf));
+ 501:../SendMeasurementsToBt.c **** 
+ 502:../SendMeasurementsToBt.c **** 			i++;
+ 503:../SendMeasurementsToBt.c **** 		}
+ 504:../SendMeasurementsToBt.c **** 		else if(1 == i)
+ 505:../SendMeasurementsToBt.c **** 		{
+ 506:../SendMeasurementsToBt.c **** 			send(yAxisf, strlen((const char*)yAxisf));
+ 507:../SendMeasurementsToBt.c **** 
+ 508:../SendMeasurementsToBt.c **** 			i++;
+ 509:../SendMeasurementsToBt.c **** 		}
+ 510:../SendMeasurementsToBt.c **** 		else if(2 == i)
+ 511:../SendMeasurementsToBt.c **** 		{
+ 512:../SendMeasurementsToBt.c **** 			send(zAxisf, strlen((const char*)zAxisf));
+ 513:../SendMeasurementsToBt.c **** 
+ 514:../SendMeasurementsToBt.c **** 			i = 0;
+ 515:../SendMeasurementsToBt.c **** 		}*/
+ 516:../SendMeasurementsToBt.c **** 	}
+ 517:../SendMeasurementsToBt.c **** }
+ 1340              		.loc 1 517 0
+ 1341 0032 07F10807 		add	r7, r7, #8
+ 1342 0036 BD46     		mov	sp, r7
+ 1343 0038 80BD     		pop	{r7, pc}
+ 1344              		.cfi_endproc
+ 1345              	.LFE118:
+ 1347 003a 00BF     		.section	.text.sendTSL2561,"ax",%progbits
+ 1348              		.align	2
+ 1349              		.global	sendTSL2561
+ 1350              		.thumb
+ 1351              		.thumb_func
+ 1353              	sendTSL2561:
+ 1354              	.LFB119:
+ 518:../SendMeasurementsToBt.c **** 
+ 519:../SendMeasurementsToBt.c **** void sendTSL2561(void *T)
+ 520:../SendMeasurementsToBt.c **** {
+ 1355              		.loc 1 520 0
+ 1356              		.cfi_startproc
+ 1357              		@ args = 0, pretend = 0, frame = 8
+ 1358              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1359 0000 80B5     		push	{r7, lr}
+ 1360              	.LCFI7:
+ 1361              		.cfi_def_cfa_offset 8
+ 1362              		.cfi_offset 7, -8
+ 1363              		.cfi_offset 14, -4
+ 1364 0002 82B0     		sub	sp, sp, #8
+ 1365              	.LCFI8:
+ 1366              		.cfi_def_cfa_offset 16
+ 1367 0004 00AF     		add	r7, sp, #0
+ 1368              	.LCFI9:
+ 1369              		.cfi_def_cfa_register 7
+ 1370 0006 7860     		str	r0, [r7, #4]
+ 521:../SendMeasurementsToBt.c **** 	static int i = 0;
+ 522:../SendMeasurementsToBt.c **** 
+ 523:../SendMeasurementsToBt.c **** 	/*if(copied == 1)
+ 524:../SendMeasurementsToBt.c **** 	{*/
+ 525:../SendMeasurementsToBt.c **** 		//send(humidity, strlen((const char*)humidity));
+ 526:../SendMeasurementsToBt.c **** 		send(json_data, strlen((const char*)json_data));
+ 1371              		.loc 1 526 0
+ 1372 0008 40F20000 		movw	r0, #:lower16:json_data
+ 1373 000c C0F20000 		movt	r0, #:upper16:json_data
+ 1374 0010 FFF7FEFF 		bl	strlen
+ 1375 0014 0346     		mov	r3, r0
+ 1376 0016 40F20000 		movw	r0, #:lower16:json_data
+ 1377 001a C0F20000 		movt	r0, #:upper16:json_data
+ 1378 001e 1946     		mov	r1, r3
+ 1379 0020 FFF7FEFF 		bl	send
+ 527:../SendMeasurementsToBt.c **** 	//}
+ 528:../SendMeasurementsToBt.c **** }
+ 1380              		.loc 1 528 0
+ 1381 0024 07F10807 		add	r7, r7, #8
+ 1382 0028 BD46     		mov	sp, r7
+ 1383 002a 80BD     		pop	{r7, pc}
+ 1384              		.cfi_endproc
+ 1385              	.LFE119:
+ 1387              		.section	.text.sendMsgHTU21D,"ax",%progbits
+ 1388              		.align	2
+ 1389              		.global	sendMsgHTU21D
+ 1390              		.thumb
+ 1391              		.thumb_func
+ 1393              	sendMsgHTU21D:
+ 1394              	.LFB120:
+ 529:../SendMeasurementsToBt.c **** 
+ 530:../SendMeasurementsToBt.c **** 
+ 531:../SendMeasurementsToBt.c **** void sendMsgHTU21D(void *T)
+ 532:../SendMeasurementsToBt.c **** {
+ 1395              		.loc 1 532 0
+ 1396              		.cfi_startproc
+ 1397              		@ args = 0, pretend = 0, frame = 8
+ 1398              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1399 0000 80B5     		push	{r7, lr}
+ 1400              	.LCFI10:
+ 1401              		.cfi_def_cfa_offset 8
+ 1402              		.cfi_offset 7, -8
+ 1403              		.cfi_offset 14, -4
+ 1404 0002 82B0     		sub	sp, sp, #8
+ 1405              	.LCFI11:
+ 1406              		.cfi_def_cfa_offset 16
+ 1407 0004 00AF     		add	r7, sp, #0
+ 1408              	.LCFI12:
+ 1409              		.cfi_def_cfa_register 7
+ 1410 0006 7860     		str	r0, [r7, #4]
+ 533:../SendMeasurementsToBt.c **** 	static int i = 0;
+ 534:../SendMeasurementsToBt.c **** 
+ 535:../SendMeasurementsToBt.c **** 	/*if(copied == 1)
+ 536:../SendMeasurementsToBt.c **** 	{*/
+ 537:../SendMeasurementsToBt.c **** 		//send(humidity, strlen((const char*)humidity));
+ 538:../SendMeasurementsToBt.c **** 		send(json_data, strlen((const char*)json_data));
+ 1411              		.loc 1 538 0
+ 1412 0008 40F20000 		movw	r0, #:lower16:json_data
+ 1413 000c C0F20000 		movt	r0, #:upper16:json_data
+ 1414 0010 FFF7FEFF 		bl	strlen
+ 1415 0014 0346     		mov	r3, r0
+ 1416 0016 40F20000 		movw	r0, #:lower16:json_data
+ 1417 001a C0F20000 		movt	r0, #:upper16:json_data
+ 1418 001e 1946     		mov	r1, r3
+ 1419 0020 FFF7FEFF 		bl	send
+ 539:../SendMeasurementsToBt.c **** 	//}
+ 540:../SendMeasurementsToBt.c **** }
+ 1420              		.loc 1 540 0
+ 1421 0024 07F10807 		add	r7, r7, #8
+ 1422 0028 BD46     		mov	sp, r7
+ 1423 002a 80BD     		pop	{r7, pc}
+ 1424              		.cfi_endproc
+ 1425              	.LFE120:
+ 1427              		.section	.text.sendAllSensors,"ax",%progbits
+ 1428              		.align	2
+ 1429              		.global	sendAllSensors
+ 1430              		.thumb
+ 1431              		.thumb_func
+ 1433              	sendAllSensors:
+ 1434              	.LFB121:
+ 541:../SendMeasurementsToBt.c **** 
+ 542:../SendMeasurementsToBt.c **** 
+ 543:../SendMeasurementsToBt.c **** void sendAllSensors(void *T)
+ 544:../SendMeasurementsToBt.c **** {
+ 1435              		.loc 1 544 0
+ 1436              		.cfi_startproc
+ 1437              		@ args = 0, pretend = 0, frame = 8
+ 1438              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1439 0000 80B5     		push	{r7, lr}
+ 1440              	.LCFI13:
+ 1441              		.cfi_def_cfa_offset 8
+ 1442              		.cfi_offset 7, -8
+ 1443              		.cfi_offset 14, -4
+ 1444 0002 82B0     		sub	sp, sp, #8
+ 1445              	.LCFI14:
+ 1446              		.cfi_def_cfa_offset 16
+ 1447 0004 00AF     		add	r7, sp, #0
+ 1448              	.LCFI15:
+ 1449              		.cfi_def_cfa_register 7
+ 1450 0006 7860     		str	r0, [r7, #4]
+ 545:../SendMeasurementsToBt.c **** 	static int i = 0;
+ 546:../SendMeasurementsToBt.c **** 
+ 547:../SendMeasurementsToBt.c **** 	if(copied == 1){
+ 1451              		.loc 1 547 0
+ 1452 0008 40F20003 		movw	r3, #:lower16:copied
+ 1453 000c C0F20003 		movt	r3, #:upper16:copied
+ 1454 0010 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1455 0012 012B     		cmp	r3, #1
+ 1456 0014 0DD1     		bne	.L34
+ 548:../SendMeasurementsToBt.c **** 		send(json_data, strlen((const char*)json_data));
+ 1457              		.loc 1 548 0
+ 1458 0016 40F20000 		movw	r0, #:lower16:json_data
+ 1459 001a C0F20000 		movt	r0, #:upper16:json_data
+ 1460 001e FFF7FEFF 		bl	strlen
+ 1461 0022 0346     		mov	r3, r0
+ 1462 0024 40F20000 		movw	r0, #:lower16:json_data
+ 1463 0028 C0F20000 		movt	r0, #:upper16:json_data
+ 1464 002c 1946     		mov	r1, r3
+ 1465 002e FFF7FEFF 		bl	send
+ 1466              	.L34:
+ 549:../SendMeasurementsToBt.c **** 		/*if(0 == i)//accelerometer BEGIN
+ 550:../SendMeasurementsToBt.c **** 		{
+ 551:../SendMeasurementsToBt.c **** 			send("a", strlen("a"));
+ 552:../SendMeasurementsToBt.c **** 			i++;
+ 553:../SendMeasurementsToBt.c **** 		}
+ 554:../SendMeasurementsToBt.c **** 		else if(1 == i){
+ 555:../SendMeasurementsToBt.c **** 			send(accX, strlen((const char*)accX));
+ 556:../SendMeasurementsToBt.c **** 
+ 557:../SendMeasurementsToBt.c **** 			i++;
+ 558:../SendMeasurementsToBt.c **** 		}
+ 559:../SendMeasurementsToBt.c **** 		else if(2 == i)
+ 560:../SendMeasurementsToBt.c **** 		{
+ 561:../SendMeasurementsToBt.c **** 			send("a", strlen("a"));
+ 562:../SendMeasurementsToBt.c **** 			i++;
+ 563:../SendMeasurementsToBt.c **** 		}
+ 564:../SendMeasurementsToBt.c **** 		else if(3 == i)
+ 565:../SendMeasurementsToBt.c **** 		{
+ 566:../SendMeasurementsToBt.c **** 			send(accY, strlen((const char*)accY));
+ 567:../SendMeasurementsToBt.c **** 
+ 568:../SendMeasurementsToBt.c **** 			i++;
+ 569:../SendMeasurementsToBt.c **** 		}
+ 570:../SendMeasurementsToBt.c **** 		else if(4 == i)
+ 571:../SendMeasurementsToBt.c **** 		{
+ 572:../SendMeasurementsToBt.c **** 			send("a", strlen("a"));
+ 573:../SendMeasurementsToBt.c **** 			i++;
+ 574:../SendMeasurementsToBt.c **** 		}
+ 575:../SendMeasurementsToBt.c **** 		else if(5 == i)
+ 576:../SendMeasurementsToBt.c **** 		{
+ 577:../SendMeasurementsToBt.c **** 			send(accZ, strlen((const char*)accZ));
+ 578:../SendMeasurementsToBt.c **** 
+ 579:../SendMeasurementsToBt.c **** 			//i = 0;
+ 580:../SendMeasurementsToBt.c **** 			i++;
+ 581:../SendMeasurementsToBt.c **** 		}//accelerometer END
+ 582:../SendMeasurementsToBt.c **** 		else if(6 == i)//gyroscope BEGIN
+ 583:../SendMeasurementsToBt.c **** 		{
+ 584:../SendMeasurementsToBt.c **** 			send("g", strlen("g"));
+ 585:../SendMeasurementsToBt.c **** 			i++;
+ 586:../SendMeasurementsToBt.c **** 		}
+ 587:../SendMeasurementsToBt.c **** 		else if(7 == i)
+ 588:../SendMeasurementsToBt.c **** 		{
+ 589:../SendMeasurementsToBt.c **** 			send(gyrX, strlen((const char*)gyrX));
+ 590:../SendMeasurementsToBt.c **** 			i++;
+ 591:../SendMeasurementsToBt.c **** 		}
+ 592:../SendMeasurementsToBt.c **** 		else if(8 == i)
+ 593:../SendMeasurementsToBt.c **** 		{
+ 594:../SendMeasurementsToBt.c **** 			send("g", strlen("g"));
+ 595:../SendMeasurementsToBt.c **** 			i++;
+ 596:../SendMeasurementsToBt.c **** 		}
+ 597:../SendMeasurementsToBt.c **** 		else if(9 == i)
+ 598:../SendMeasurementsToBt.c **** 		{
+ 599:../SendMeasurementsToBt.c **** 			send(gyrY, strlen((const char*)gyrY));
+ 600:../SendMeasurementsToBt.c **** 			i++;
+ 601:../SendMeasurementsToBt.c **** 		}
+ 602:../SendMeasurementsToBt.c **** 		else if(10 == i)
+ 603:../SendMeasurementsToBt.c **** 		{
+ 604:../SendMeasurementsToBt.c **** 			send("g", strlen("g"));
+ 605:../SendMeasurementsToBt.c **** 			i++;
+ 606:../SendMeasurementsToBt.c **** 		}
+ 607:../SendMeasurementsToBt.c **** 		else if(11 == i)
+ 608:../SendMeasurementsToBt.c **** 		{
+ 609:../SendMeasurementsToBt.c **** 			send(gyrZ, strlen((const char*)gyrZ));
+ 610:../SendMeasurementsToBt.c **** 			i++;
+ 611:../SendMeasurementsToBt.c **** 		}//gyroscope END
+ 612:../SendMeasurementsToBt.c **** 		else if(12 == i) //magnetometer BEGIN
+ 613:../SendMeasurementsToBt.c **** 		{
+ 614:../SendMeasurementsToBt.c **** 			send("m", strlen("m"));
+ 615:../SendMeasurementsToBt.c **** 			i++;
+ 616:../SendMeasurementsToBt.c **** 		}
+ 617:../SendMeasurementsToBt.c **** 		else if(13 == i)
+ 618:../SendMeasurementsToBt.c **** 		{
+ 619:../SendMeasurementsToBt.c **** 			send(magX, strlen((const char*)magX));
+ 620:../SendMeasurementsToBt.c **** 			i++;
+ 621:../SendMeasurementsToBt.c **** 		}
+ 622:../SendMeasurementsToBt.c **** 		else if(14 == i)
+ 623:../SendMeasurementsToBt.c **** 		{
+ 624:../SendMeasurementsToBt.c **** 			send("m", strlen("m"));
+ 625:../SendMeasurementsToBt.c **** 			i++;
+ 626:../SendMeasurementsToBt.c **** 		}
+ 627:../SendMeasurementsToBt.c **** 		else if(15 == i)
+ 628:../SendMeasurementsToBt.c **** 		{
+ 629:../SendMeasurementsToBt.c **** 			send(magY, strlen((const char*)magY));
+ 630:../SendMeasurementsToBt.c **** 			i++;
+ 631:../SendMeasurementsToBt.c **** 		}
+ 632:../SendMeasurementsToBt.c **** 		else if(16 == i)
+ 633:../SendMeasurementsToBt.c **** 		{
+ 634:../SendMeasurementsToBt.c **** 			send("m", strlen("m"));
+ 635:../SendMeasurementsToBt.c **** 			i++;
+ 636:../SendMeasurementsToBt.c **** 		}
+ 637:../SendMeasurementsToBt.c **** 		else if(17 == i)
+ 638:../SendMeasurementsToBt.c **** 		{
+ 639:../SendMeasurementsToBt.c **** 			send(magZ, strlen((const char*)magZ));
+ 640:../SendMeasurementsToBt.c **** 			i++;
+ 641:../SendMeasurementsToBt.c **** 		} //magnetometer END
+ 642:../SendMeasurementsToBt.c **** 		else if(18 == i)
+ 643:../SendMeasurementsToBt.c **** 		{
+ 644:../SendMeasurementsToBt.c **** 			send(json_data, strlen((const char*)json_data));
+ 645:../SendMeasurementsToBt.c **** 			i = 0;
+ 646:../SendMeasurementsToBt.c **** 		}*/
+ 647:../SendMeasurementsToBt.c **** 	}
+ 648:../SendMeasurementsToBt.c **** }
+ 1467              		.loc 1 648 0
+ 1468 0032 07F10807 		add	r7, r7, #8
+ 1469 0036 BD46     		mov	sp, r7
+ 1470 0038 80BD     		pop	{r7, pc}
+ 1471              		.cfi_endproc
+ 1472              	.LFE121:
+ 1474 003a 00BF     		.bss
+ 1475              		.align	2
+ 1476              	i.9671:
+ 1477 0004 00000000 		.space	4
+ 1478              		.align	2
+ 1479              	i.9667:
+ 1480 0008 00000000 		.space	4
+ 1481              		.align	2
+ 1482              	i.9663:
+ 1483 000c 00000000 		.space	4
+ 1484              		.align	2
+ 1485              	i.9659:
+ 1486 0010 00000000 		.space	4
+ 1487              		.align	2
+ 1488              	i.9653:
+ 1489 0014 00000000 		.space	4
+ 1490              		.text
+ 1491              	.Letext0:
+ 1492              		.file 2 "c:\\dave-3.1.10\\arm-gcc\\bin\\../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/i
+ 1493              		.file 3 "../LSM9DS1_Types.h"
+ 1494              		.file 4 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 1495              		.file 5 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 1496              		.file 6 "../LSM9DS1_Driver.h"
+ 1497              		.file 7 "C:\\DAVE-3.1.10\\eclipse\\/../CMSIS/Include/core_cm4.h"
+ 1498              		.file 8 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 1499              		.file 9 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+DEFINED SYMBOLS
+                            *ABS*:00000000 SendMeasurementsToBt.c
+                            *COM*:00000004 TimerId
+                            *COM*:00000004 Status
+                            *COM*:00000004 WriteTimerId
+                            *COM*:00000004 WriteTimerStatus
+                            *COM*:00000004 TimerIdReadBytes
+                            *COM*:00000004 StatusReadBytes
+                            *COM*:00000028 settings
+                            *COM*:0000000c gBias
+                            *COM*:0000000c aBias
+                            *COM*:0000000c mBias
+                            *COM*:00000006 gBiasRaw
+                            *COM*:00000006 aBiasRaw
+                            *COM*:00000006 mBiasRaw
+                            *COM*:00000001 _autoCalc
+                            *COM*:00000001 _mAddress
+                            *COM*:00000001 _xgAddress
+                            *COM*:00000004 gRes
+                            *COM*:00000004 aRes
+                            *COM*:00000004 mRes
+                            *COM*:00000002 gx
+                            *COM*:00000002 gy
+                            *COM*:00000002 gz
+                            *COM*:00000002 ax
+                            *COM*:00000002 ay
+                            *COM*:00000002 az
+                            *COM*:00000002 mx
+                            *COM*:00000002 my
+                            *COM*:00000002 mz
+                            *COM*:00000002 temperature
+                            *COM*:00000014 device
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:54     .bss:00000000 turnedOn
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:51     .bss:00000000 $d
+                            *COM*:0000000a xAxis
+                            *COM*:0000000a yAxis
+                            *COM*:0000000a zAxis
+                            *COM*:0000001e xAxisf
+                            *COM*:0000001e yAxisf
+                            *COM*:0000001e zAxisf
+                            *COM*:00000014 accX
+                            *COM*:00000014 accY
+                            *COM*:00000014 accZ
+                            *COM*:00000014 gyrX
+                            *COM*:00000014 gyrY
+                            *COM*:00000014 gyrZ
+                            *COM*:00000014 magX
+                            *COM*:00000014 magY
+                            *COM*:00000014 magZ
+                            *COM*:0000001e humidity
+                            *COM*:0000012c json_data
+                            *COM*:00000001 connectionFailure
+                            *COM*:00000004 TimerIdSentMsg
+                            *COM*:00000004 turnedOnSentTimer
+                            *COM*:00000001 copied
+                            *COM*:000004b0 copiedData
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:79     .rodata:00000000 $d
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:80     .rodata:00000000 .LC0
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:84     .rodata:00000008 .LC1
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:88     .rodata:00000034 .LC2
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:91     .rodata:00000040 .LC3
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:95     .rodata:0000006c .LC4
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:98     .rodata:0000007c .LC5
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:102    .rodata:000000a8 .LC6
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:105    .rodata:000000b4 .LC7
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:108    .rodata:000000d0 .LC8
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:111    .rodata:000000dc .LC9
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:114    .rodata:000000f8 .LC10
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:117    .rodata:00000100 .LC11
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:120    .rodata:0000011c .LC12
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:123    .rodata:00000128 .LC13
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:126    .rodata:00000130 .LC14
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:129    .rodata:00000138 .LC15
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:132    .rodata:00000140 .LC16
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:139    .text.sendMeasurementsToBt:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:144    .text.sendMeasurementsToBt:00000000 sendMeasurementsToBt
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1488   .bss:00000014 i.9653
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1306   .text.sendMsgLSM9DS1:00000000 sendMsgLSM9DS1
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1393   .text.sendMsgHTU21D:00000000 sendMsgHTU21D
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1353   .text.sendTSL2561:00000000 sendTSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1433   .text.sendAllSensors:00000000 sendAllSensors
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1301   .text.sendMsgLSM9DS1:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1348   .text.sendTSL2561:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1388   .text.sendMsgHTU21D:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1428   .text.sendAllSensors:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1476   .bss:00000004 i.9671
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1479   .bss:00000008 i.9667
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1482   .bss:0000000c i.9663
+C:\Users\Mateusz\AppData\Local\Temp\ccsHA1Sg.s:1485   .bss:00000010 i.9659
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.35166846b5321d4273ad8c4248893ac3
+                           .group:00000000 wm4.LSM9DS1_Driver.h.9.225085f752270af24a0df342ed7d3479
+                           .group:00000000 wm4.LSM9DS1_Registers.h.9.72af380d6da01de607f77d245bf32825
+                           .group:00000000 wm4.newlib.h.8.a9901dc52d1357e3e94003403d43f8b5
+                           .group:00000000 wm4.features.h.22.b72b3baab2bb2eab3661375590100b6b
+                           .group:00000000 wm4.config.h.193.5fb8ef056cdff92dec3dee9552839d8c
+                           .group:00000000 wm4._ansi.h.23.7aefdac4826acebbfc9f3822a0aeb14c
+                           .group:00000000 wm4.stdint.h.20.54ad762faa59e3c05491630641c8d8bf
+                           .group:00000000 wm4.XMC4500.h.45.215f4b8c79f46c7645c15373868d08c0
+                           .group:00000000 wm4.core_cm4.h.47.41af406cb4cda82c972f112a9cd0a024
+                           .group:00000000 wm4.core_cmInstr.h.39.3d3d1b4a79aef37532666dc6ee87c6ac
+                           .group:00000000 wm4.core_cm4_simd.h.43.b5d1d38735af6366227b4256d330cf13
+                           .group:00000000 wm4.core_cm4.h.178.e5ef5ce66d198d7f00f9d0076e267c41
+                           .group:00000000 wm4.system_XMC4500.h.29.827f68baa362c84f2abae4ab67dde7c9
+                           .group:00000000 wm4.XMC4500.h.198.8e022f279ff353ed081df898dc7b9cf3
+                           .group:00000000 wm4.stddef.h.40.50cf36416e06376af8a9dca28536f2e4
+                           .group:00000000 wm4.types.h.60.e75c47576398c648cdcf9000ace5e3d8
+                           .group:00000000 wm4.MULTIPLEXER.h.46.4a863fbae1c79f0db26da3ce2dc30d02
+                           .group:00000000 wm4.CCU8PWMLIB.h.74.725ec81203769525cc7a424597055f47
+                           .group:00000000 wm4.MOTORLIB.h.62.951091d95913dd2ff36d761323a1771d
+                           .group:00000000 wm4.DBG001.h.116.d6d9e7459a0faa3905c97c1d2edb339d
+                           .group:00000000 wm4.uc_id.h.35.fa57ecd9f559d2767f56c96da2848c12
+                           .group:00000000 wm4.CLK001_Const.h.50.e5e9c2ddc89f4cc9e7b93e9648fa94e4
+                           .group:00000000 wm4.CLK001_Conf.h.81.82a8db895dc146da001475dd68223522
+                           .group:00000000 wm4.Usic.h.58.a3e6728d1d20f5a5e52f483a06098d7b
+                           .group:00000000 wm4.I2C001.h.97.5277d52889d6c741e048ea45ee1277b5
+                           .group:00000000 wm4.I2C001_Conf.h.58.8dc4f48d59c07ab7aabfa000634f20d6
+                           .group:00000000 wm4.IO004.h.53.442ea5eb47ad9eedc675253aa35f3107
+                           .group:00000000 wm4.NVIC002_Conf.h.63.4cb383ec1dc83a7d3971985af232fba2
+                           .group:00000000 wm4.SYSTM001.h.64.6ecb31c49bc3e7691644fdcdfc11b5cd
+                           .group:00000000 wm4.UART001_Conf.h.53.25f1a2c84c9f0e515b40b3ac3580460d
+                           .group:00000000 wm4.stdio.h.31.f48311dde756a2aec27351b58a280fb9
+                           .group:00000000 wm4.stddef.h.161.e50ff8a9d5d1abbc15641da28ac571bf
+                           .group:00000000 wm4.stdarg.h.34.3a23a216c0c293b3d2ea2e89281481e6
+                           .group:00000000 wm4._default_types.h.6.5e12cd604db8ce00b62bb2f02708eaf3
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.161.c6104a0666cf681b6269ddc9b4f516d4
+                           .group:00000000 wm4.reent.h.16.9e42f0e588b85e70b2bf6572af57ce64
+                           .group:00000000 wm4.types.h.23.0d949686bbcadd1621462d4fa1f884f9
+                           .group:00000000 wm4.types.h.2.e9cec8c90ab35f77d9f499e06ae02400
+                           .group:00000000 wm4.types.h.80.1f2c84c0d57dd52dd9936095d9ac218e
+                           .group:00000000 wm4.stdio.h.2.4aa87247282eca6c8f36f9de33d8df1a
+                           .group:00000000 wm4.stdio.h.63.dfdea6580b080784d08faace69b6ed76
+                           .group:00000000 wm4.stdlib.h.13.603ed7eb09a1561ab06840b7c0fcff58
+                           .group:00000000 wm4.alloca.h.8.dfc0c703c47ec3e69746825b17d9e66d
+                           .group:00000000 wm4.stdlib.h.53.c69c7609933ff56d59c757cec2d13230
+                           .group:00000000 wm4.string.h.8.ef946ad0bc9ad5c970c365dcd1fc4b0a
+                           .group:00000000 wm4.string.h.86.d5c872ff52e2712c985b588a0ef39f3c
+                           .group:00000000 wm4.HTU21D.h.9.a3202084292db5996b4062a4a172049d
+                           .group:00000000 wm4.math.h.35.cc9264b0ced3bd063c5784e64e89cf51
+                           .group:00000000 wm4.TSL2561.h.18.9618d5d7f1dcc1b3cd41935b7a1e99d8
+
+UNDEFINED SYMBOLS
+__aeabi_f2d
+strcmp
+startMeasurements
+readAndSendMeasurements
+getAccelXf
+getAccelYf
+getAccelZf
+sprintf
+SYSTM001_CreateTimer
+SYSTM001_StartTimer
+resetMeasurements
+SYSTM001_StopTimer
+SYSTM001_DeleteTimer
+cleanArray
+getGyroXf
+getGyroYf
+getGyroZf
+IO004_Handle4
+getMagnetXf
+getMagnetYf
+getMagnetZf
+readTemperature
+readHumidity
+startMeasurementsTSL2561
+getLuminosity
+stopMeasurementsTSL2561
+startMeasurements1
+strlen
+send

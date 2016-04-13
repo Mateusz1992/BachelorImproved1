@@ -1,0 +1,2700 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m4
+   3              		.eabi_attribute 27, 3
+   4              		.fpu fpv4-sp-d16
+   5              		.eabi_attribute 20, 1
+   6              		.eabi_attribute 21, 1
+   7              		.eabi_attribute 23, 3
+   8              		.eabi_attribute 24, 1
+   9              		.eabi_attribute 25, 1
+  10              		.eabi_attribute 26, 1
+  11              		.eabi_attribute 30, 6
+  12              		.eabi_attribute 34, 1
+  13              		.eabi_attribute 18, 4
+  14              		.thumb
+  15              		.file	"TSL2561.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.comm	luminosity,8,8
+  20              		.global	DataReceive11
+  21              		.bss
+  22              		.align	1
+  25              	DataReceive11:
+  26 0000 0000     		.space	2
+  27              		.global	received1
+  30              	received1:
+  31 0002 00       		.space	1
+  32              		.comm	_i2c_address,1,1
+  33              		.comm	_error,1,1
+  34              		.global	TimerIdTSL2561
+  35 0003 00       		.align	2
+  38              	TimerIdTSL2561:
+  39 0004 00000000 		.space	4
+  40              		.global	StatusTimerTSL2561
+  41              		.data
+  42              		.align	2
+  45              	StatusTimerTSL2561:
+  46 0000 02000000 		.word	2
+  47              		.section	.text.USIC1_0_IRQHandler,"ax",%progbits
+  48              		.align	2
+  49              		.global	USIC1_0_IRQHandler
+  50              		.thumb
+  51              		.thumb_func
+  53              	USIC1_0_IRQHandler:
+  54              	.LFB117:
+  55              		.file 1 "../TSL2561.c"
+   1:../TSL2561.c  **** /*
+   2:../TSL2561.c  ****  * TSL2561.c
+   3:../TSL2561.c  ****  *
+   4:../TSL2561.c  ****  *  Created on: 01-04-2016
+   5:../TSL2561.c  ****  *      Author: Mateusz
+   6:../TSL2561.c  ****  */
+   7:../TSL2561.c  **** #include "TSL2561.h"
+   8:../TSL2561.c  **** 
+   9:../TSL2561.c  **** extern int gain;
+  10:../TSL2561.c  **** extern unsigned char time;
+  11:../TSL2561.c  **** extern unsigned int ms;
+  12:../TSL2561.c  **** 
+  13:../TSL2561.c  **** double luminosity;
+  14:../TSL2561.c  **** 
+  15:../TSL2561.c  **** uint16_t DataReceive11 = 0;
+  16:../TSL2561.c  **** uint8_t received1 = 0;
+  17:../TSL2561.c  **** 
+  18:../TSL2561.c  **** 
+  19:../TSL2561.c  **** uint8_t _i2c_address;
+  20:../TSL2561.c  **** uint8_t _error;
+  21:../TSL2561.c  **** 
+  22:../TSL2561.c  **** handle_t TimerIdTSL2561 = 0;
+  23:../TSL2561.c  **** uint32_t StatusTimerTSL2561 = SYSTM001_ERROR;
+  24:../TSL2561.c  **** 
+  25:../TSL2561.c  **** 
+  26:../TSL2561.c  **** void FIFO_Receive_Int_Handler1(void)
+  27:../TSL2561.c  **** {
+  56              		.loc 1 27 0
+  57              		.cfi_startproc
+  58              		@ args = 0, pretend = 0, frame = 0
+  59              		@ frame_needed = 1, uses_anonymous_args = 0
+  60 0000 80B5     		push	{r7, lr}
+  61              	.LCFI0:
+  62              		.cfi_def_cfa_offset 8
+  63              		.cfi_offset 7, -8
+  64              		.cfi_offset 14, -4
+  65 0002 00AF     		add	r7, sp, #0
+  66              	.LCFI1:
+  67              		.cfi_def_cfa_register 7
+  28:../TSL2561.c  **** 	/*uint16_t */DataReceive11 = 0;
+  68              		.loc 1 28 0
+  69 0004 40F20003 		movw	r3, #:lower16:DataReceive11
+  70 0008 C0F20003 		movt	r3, #:upper16:DataReceive11
+  71 000c 4FF00002 		mov	r2, #0
+  72 0010 1A80     		strh	r2, [r3, #0]	@ movhi
+  29:../TSL2561.c  **** 
+  30:../TSL2561.c  **** 	I2C001_ReadData(&I2C001_Handle2,&DataReceive11);
+  73              		.loc 1 30 0
+  74 0012 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+  75 0016 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+  76 001a 40F20001 		movw	r1, #:lower16:DataReceive11
+  77 001e C0F20001 		movt	r1, #:upper16:DataReceive11
+  78 0022 FFF7FEFF 		bl	I2C001_ReadData
+  31:../TSL2561.c  **** 	//delay(10000);
+  32:../TSL2561.c  **** 	received1 = 1;
+  79              		.loc 1 32 0
+  80 0026 40F20003 		movw	r3, #:lower16:received1
+  81 002a C0F20003 		movt	r3, #:upper16:received1
+  82 002e 4FF00102 		mov	r2, #1
+  83 0032 1A70     		strb	r2, [r3, #0]
+  33:../TSL2561.c  **** }
+  84              		.loc 1 33 0
+  85 0034 80BD     		pop	{r7, pc}
+  86              		.cfi_endproc
+  87              	.LFE117:
+  89 0036 00BF     		.section	.text.startMeasurementsTSL2561,"ax",%progbits
+  90              		.align	2
+  91              		.global	startMeasurementsTSL2561
+  92              		.thumb
+  93              		.thumb_func
+  95              	startMeasurementsTSL2561:
+  96              	.LFB118:
+  34:../TSL2561.c  **** 
+  35:../TSL2561.c  **** void startMeasurementsTSL2561(void)
+  36:../TSL2561.c  **** {
+  97              		.loc 1 36 0
+  98              		.cfi_startproc
+  99              		@ args = 0, pretend = 0, frame = 0
+ 100              		@ frame_needed = 1, uses_anonymous_args = 0
+ 101 0000 80B5     		push	{r7, lr}
+ 102              	.LCFI2:
+ 103              		.cfi_def_cfa_offset 8
+ 104              		.cfi_offset 7, -8
+ 105              		.cfi_offset 14, -4
+ 106 0002 00AF     		add	r7, sp, #0
+ 107              	.LCFI3:
+ 108              		.cfi_def_cfa_register 7
+  37:../TSL2561.c  **** 	TimerIdTSL2561 = SYSTM001_CreateTimer(60,SYSTM001_PERIODIC,timerHandlerReceiveTSL2561,NULL/*&adrAn
+ 109              		.loc 1 37 0
+ 110 0004 4FF03C00 		mov	r0, #60
+ 111 0008 4FF00101 		mov	r1, #1
+ 112 000c 40F20002 		movw	r2, #:lower16:timerHandlerReceiveTSL2561
+ 113 0010 C0F20002 		movt	r2, #:upper16:timerHandlerReceiveTSL2561
+ 114 0014 4FF00003 		mov	r3, #0
+ 115 0018 FFF7FEFF 		bl	SYSTM001_CreateTimer
+ 116 001c 0246     		mov	r2, r0
+ 117 001e 40F20003 		movw	r3, #:lower16:TimerIdTSL2561
+ 118 0022 C0F20003 		movt	r3, #:upper16:TimerIdTSL2561
+ 119 0026 1A60     		str	r2, [r3, #0]
+  38:../TSL2561.c  **** 	SYSTM001_StartTimer(TimerIdTSL2561);
+ 120              		.loc 1 38 0
+ 121 0028 40F20003 		movw	r3, #:lower16:TimerIdTSL2561
+ 122 002c C0F20003 		movt	r3, #:upper16:TimerIdTSL2561
+ 123 0030 1B68     		ldr	r3, [r3, #0]
+ 124 0032 1846     		mov	r0, r3
+ 125 0034 FFF7FEFF 		bl	SYSTM001_StartTimer
+  39:../TSL2561.c  **** }
+ 126              		.loc 1 39 0
+ 127 0038 80BD     		pop	{r7, pc}
+ 128              		.cfi_endproc
+ 129              	.LFE118:
+ 131 003a 00BF     		.section	.text.stopMeasurementsTSL2561,"ax",%progbits
+ 132              		.align	2
+ 133              		.global	stopMeasurementsTSL2561
+ 134              		.thumb
+ 135              		.thumb_func
+ 137              	stopMeasurementsTSL2561:
+ 138              	.LFB119:
+  40:../TSL2561.c  **** 
+  41:../TSL2561.c  **** void stopMeasurementsTSL2561(void)
+  42:../TSL2561.c  **** {
+ 139              		.loc 1 42 0
+ 140              		.cfi_startproc
+ 141              		@ args = 0, pretend = 0, frame = 0
+ 142              		@ frame_needed = 1, uses_anonymous_args = 0
+ 143 0000 80B5     		push	{r7, lr}
+ 144              	.LCFI4:
+ 145              		.cfi_def_cfa_offset 8
+ 146              		.cfi_offset 7, -8
+ 147              		.cfi_offset 14, -4
+ 148 0002 00AF     		add	r7, sp, #0
+ 149              	.LCFI5:
+ 150              		.cfi_def_cfa_register 7
+  43:../TSL2561.c  **** 	SYSTM001_StopTimer(TimerIdTSL2561);
+ 151              		.loc 1 43 0
+ 152 0004 40F20003 		movw	r3, #:lower16:TimerIdTSL2561
+ 153 0008 C0F20003 		movt	r3, #:upper16:TimerIdTSL2561
+ 154 000c 1B68     		ldr	r3, [r3, #0]
+ 155 000e 1846     		mov	r0, r3
+ 156 0010 FFF7FEFF 		bl	SYSTM001_StopTimer
+  44:../TSL2561.c  **** 
+  45:../TSL2561.c  **** 	SYSTM001_DeleteTimer(TimerIdTSL2561);
+ 157              		.loc 1 45 0
+ 158 0014 40F20003 		movw	r3, #:lower16:TimerIdTSL2561
+ 159 0018 C0F20003 		movt	r3, #:upper16:TimerIdTSL2561
+ 160 001c 1B68     		ldr	r3, [r3, #0]
+ 161 001e 1846     		mov	r0, r3
+ 162 0020 FFF7FEFF 		bl	SYSTM001_DeleteTimer
+  46:../TSL2561.c  **** }
+ 163              		.loc 1 46 0
+ 164 0024 80BD     		pop	{r7, pc}
+ 165              		.cfi_endproc
+ 166              	.LFE119:
+ 168 0026 00BF     		.section	.text.timerHandlerReceiveTSL2561,"ax",%progbits
+ 169              		.align	2
+ 170              		.global	timerHandlerReceiveTSL2561
+ 171              		.thumb
+ 172              		.thumb_func
+ 174              	timerHandlerReceiveTSL2561:
+ 175              	.LFB120:
+  47:../TSL2561.c  **** 
+  48:../TSL2561.c  **** void timerHandlerReceiveTSL2561(void *T)
+  49:../TSL2561.c  **** {
+ 176              		.loc 1 49 0
+ 177              		.cfi_startproc
+ 178              		@ args = 0, pretend = 0, frame = 40
+ 179              		@ frame_needed = 1, uses_anonymous_args = 0
+ 180 0000 90B5     		push	{r4, r7, lr}
+ 181              	.LCFI6:
+ 182              		.cfi_def_cfa_offset 12
+ 183              		.cfi_offset 4, -12
+ 184              		.cfi_offset 7, -8
+ 185              		.cfi_offset 14, -4
+ 186 0002 8DB0     		sub	sp, sp, #52
+ 187              	.LCFI7:
+ 188              		.cfi_def_cfa_offset 64
+ 189 0004 02AF     		add	r7, sp, #8
+ 190              	.LCFI8:
+ 191              		.cfi_def_cfa 7, 56
+ 192 0006 7860     		str	r0, [r7, #4]
+  50:../TSL2561.c  **** 	unsigned int data0, data1;
+  51:../TSL2561.c  **** 
+  52:../TSL2561.c  **** 	/*int gain = 0;
+  53:../TSL2561.c  **** 	unsigned int ms;
+  54:../TSL2561.c  **** 	unsigned char time = 2;*/
+  55:../TSL2561.c  **** 
+  56:../TSL2561.c  **** 	if(getData(&data0, &data1))
+ 193              		.loc 1 56 0
+ 194 0008 07F11402 		add	r2, r7, #20
+ 195 000c 07F11003 		add	r3, r7, #16
+ 196 0010 1046     		mov	r0, r2
+ 197 0012 1946     		mov	r1, r3
+ 198 0014 FFF7FEFF 		bl	getData
+ 199 0018 0346     		mov	r3, r0
+ 200 001a 002B     		cmp	r3, #0
+ 201 001c 21D0     		beq	.L4
+ 202              	.LBB2:
+  57:../TSL2561.c  **** 	{
+  58:../TSL2561.c  **** 	    double lux;    // Resulting lux value
+  59:../TSL2561.c  **** 	    int good;  // True if neither sensor is saturated
+  60:../TSL2561.c  **** 
+  61:../TSL2561.c  **** 	    good = getLux(gain, ms, data0, data1, &lux);
+ 203              		.loc 1 61 0
+ 204 001e 40F20003 		movw	r3, #:lower16:gain
+ 205 0022 C0F20003 		movt	r3, #:upper16:gain
+ 206 0026 1B68     		ldr	r3, [r3, #0]
+ 207 0028 D8B2     		uxtb	r0, r3
+ 208 002a 40F20003 		movw	r3, #:lower16:ms
+ 209 002e C0F20003 		movt	r3, #:upper16:ms
+ 210 0032 1968     		ldr	r1, [r3, #0]
+ 211 0034 7A69     		ldr	r2, [r7, #20]
+ 212 0036 3B69     		ldr	r3, [r7, #16]
+ 213 0038 07F10804 		add	r4, r7, #8
+ 214 003c 0094     		str	r4, [sp, #0]
+ 215 003e FFF7FEFF 		bl	getLux
+ 216 0042 7862     		str	r0, [r7, #36]
+  62:../TSL2561.c  **** 
+  63:../TSL2561.c  **** 	    if(good)
+ 217              		.loc 1 63 0
+ 218 0044 7B6A     		ldr	r3, [r7, #36]
+ 219 0046 002B     		cmp	r3, #0
+ 220 0048 0BD0     		beq	.L4
+ 221              	.LBB3:
+  64:../TSL2561.c  **** 	    {
+  65:../TSL2561.c  **** 	    	double l = lux;
+ 222              		.loc 1 65 0
+ 223 004a D7E90223 		ldrd	r2, [r7, #8]
+ 224 004e C7E90623 		strd	r2, [r7, #24]
+  66:../TSL2561.c  **** 
+  67:../TSL2561.c  **** 	    	luminosity = lux;
+ 225              		.loc 1 67 0
+ 226 0052 D7E90201 		ldrd	r0, [r7, #8]
+ 227 0056 40F20003 		movw	r3, #:lower16:luminosity
+ 228 005a C0F20003 		movt	r3, #:upper16:luminosity
+ 229 005e C3E90001 		strd	r0, [r3]
+ 230              	.L4:
+ 231              	.LBE3:
+ 232              	.LBE2:
+  68:../TSL2561.c  **** 
+  69:../TSL2561.c  **** 	    	//pomiary[Count] = l;
+  70:../TSL2561.c  **** 	    }
+  71:../TSL2561.c  **** 	}
+  72:../TSL2561.c  **** }
+ 233              		.loc 1 72 0
+ 234 0062 07F12C07 		add	r7, r7, #44
+ 235 0066 BD46     		mov	sp, r7
+ 236 0068 90BD     		pop	{r4, r7, pc}
+ 237              		.cfi_endproc
+ 238              	.LFE120:
+ 240 006a 00BF     		.section	.text.readTSL2561,"ax",%progbits
+ 241              		.align	2
+ 242              		.global	readTSL2561
+ 243              		.thumb
+ 244              		.thumb_func
+ 246              	readTSL2561:
+ 247              	.LFB121:
+  73:../TSL2561.c  **** 
+  74:../TSL2561.c  **** void readTSL2561(void)
+  75:../TSL2561.c  **** {
+ 248              		.loc 1 75 0
+ 249              		.cfi_startproc
+ 250              		@ args = 0, pretend = 0, frame = 32
+ 251              		@ frame_needed = 1, uses_anonymous_args = 0
+ 252 0000 90B5     		push	{r4, r7, lr}
+ 253              	.LCFI9:
+ 254              		.cfi_def_cfa_offset 12
+ 255              		.cfi_offset 4, -12
+ 256              		.cfi_offset 7, -8
+ 257              		.cfi_offset 14, -4
+ 258 0002 8BB0     		sub	sp, sp, #44
+ 259              	.LCFI10:
+ 260              		.cfi_def_cfa_offset 56
+ 261 0004 02AF     		add	r7, sp, #8
+ 262              	.LCFI11:
+ 263              		.cfi_def_cfa 7, 48
+  76:../TSL2561.c  **** 	unsigned int data0, data1;
+  77:../TSL2561.c  **** 
+  78:../TSL2561.c  **** 	/*int gain = 0;
+  79:../TSL2561.c  **** 	unsigned int ms;
+  80:../TSL2561.c  **** 	unsigned char time = 2;*/
+  81:../TSL2561.c  **** 
+  82:../TSL2561.c  **** 	if(getData(&data0, &data1))
+ 264              		.loc 1 82 0
+ 265 0006 07F10C02 		add	r2, r7, #12
+ 266 000a 07F10803 		add	r3, r7, #8
+ 267 000e 1046     		mov	r0, r2
+ 268 0010 1946     		mov	r1, r3
+ 269 0012 FFF7FEFF 		bl	getData
+ 270 0016 0346     		mov	r3, r0
+ 271 0018 002B     		cmp	r3, #0
+ 272 001a 20D0     		beq	.L7
+ 273              	.LBB4:
+  83:../TSL2561.c  **** 	{
+  84:../TSL2561.c  **** 	    double lux;    // Resulting lux value
+  85:../TSL2561.c  **** 	    int good;  // True if neither sensor is saturated
+  86:../TSL2561.c  **** 
+  87:../TSL2561.c  **** 	    good = getLux(gain, ms, data0, data1, &lux);
+ 274              		.loc 1 87 0
+ 275 001c 40F20003 		movw	r3, #:lower16:gain
+ 276 0020 C0F20003 		movt	r3, #:upper16:gain
+ 277 0024 1B68     		ldr	r3, [r3, #0]
+ 278 0026 D8B2     		uxtb	r0, r3
+ 279 0028 40F20003 		movw	r3, #:lower16:ms
+ 280 002c C0F20003 		movt	r3, #:upper16:ms
+ 281 0030 1968     		ldr	r1, [r3, #0]
+ 282 0032 FA68     		ldr	r2, [r7, #12]
+ 283 0034 BB68     		ldr	r3, [r7, #8]
+ 284 0036 3C46     		mov	r4, r7
+ 285 0038 0094     		str	r4, [sp, #0]
+ 286 003a FFF7FEFF 		bl	getLux
+ 287 003e F861     		str	r0, [r7, #28]
+  88:../TSL2561.c  **** 
+  89:../TSL2561.c  **** 	    if(good)
+ 288              		.loc 1 89 0
+ 289 0040 FB69     		ldr	r3, [r7, #28]
+ 290 0042 002B     		cmp	r3, #0
+ 291 0044 0BD0     		beq	.L7
+ 292              	.LBB5:
+  90:../TSL2561.c  **** 	    {
+  91:../TSL2561.c  **** 	    	double l = lux;
+ 293              		.loc 1 91 0
+ 294 0046 D7E90023 		ldrd	r2, [r7]
+ 295 004a C7E90423 		strd	r2, [r7, #16]
+  92:../TSL2561.c  **** 
+  93:../TSL2561.c  **** 	    	luminosity = lux;
+ 296              		.loc 1 93 0
+ 297 004e D7E90001 		ldrd	r0, [r7]
+ 298 0052 40F20003 		movw	r3, #:lower16:luminosity
+ 299 0056 C0F20003 		movt	r3, #:upper16:luminosity
+ 300 005a C3E90001 		strd	r0, [r3]
+ 301              	.L7:
+ 302              	.LBE5:
+ 303              	.LBE4:
+  94:../TSL2561.c  **** 
+  95:../TSL2561.c  **** 	    	//pomiary[Count] = l;
+  96:../TSL2561.c  **** 	    }
+  97:../TSL2561.c  **** 	}
+  98:../TSL2561.c  **** }
+ 304              		.loc 1 98 0
+ 305 005e 07F12407 		add	r7, r7, #36
+ 306 0062 BD46     		mov	sp, r7
+ 307 0064 90BD     		pop	{r4, r7, pc}
+ 308              		.cfi_endproc
+ 309              	.LFE121:
+ 311 0066 00BF     		.section	.text.SFE_TSL2561,"ax",%progbits
+ 312              		.align	2
+ 313              		.global	SFE_TSL2561
+ 314              		.thumb
+ 315              		.thumb_func
+ 317              	SFE_TSL2561:
+ 318              	.LFB122:
+  99:../TSL2561.c  **** 
+ 100:../TSL2561.c  **** void SFE_TSL2561(void)
+ 101:../TSL2561.c  **** {
+ 319              		.loc 1 101 0
+ 320              		.cfi_startproc
+ 321              		@ args = 0, pretend = 0, frame = 0
+ 322              		@ frame_needed = 1, uses_anonymous_args = 0
+ 323              		@ link register save eliminated.
+ 324 0000 80B4     		push	{r7}
+ 325              	.LCFI12:
+ 326              		.cfi_def_cfa_offset 4
+ 327              		.cfi_offset 7, -4
+ 328 0002 00AF     		add	r7, sp, #0
+ 329              	.LCFI13:
+ 330              		.cfi_def_cfa_register 7
+ 102:../TSL2561.c  **** 	;
+ 103:../TSL2561.c  **** }
+ 331              		.loc 1 103 0
+ 332 0004 BD46     		mov	sp, r7
+ 333 0006 80BC     		pop	{r7}
+ 334 0008 7047     		bx	lr
+ 335              		.cfi_endproc
+ 336              	.LFE122:
+ 338 000a 00BF     		.section	.text.begin1,"ax",%progbits
+ 339              		.align	2
+ 340              		.global	begin1
+ 341              		.thumb
+ 342              		.thumb_func
+ 344              	begin1:
+ 345              	.LFB123:
+ 104:../TSL2561.c  **** 
+ 105:../TSL2561.c  **** int begin1(void)
+ 106:../TSL2561.c  **** {
+ 346              		.loc 1 106 0
+ 347              		.cfi_startproc
+ 348              		@ args = 0, pretend = 0, frame = 0
+ 349              		@ frame_needed = 1, uses_anonymous_args = 0
+ 350 0000 80B5     		push	{r7, lr}
+ 351              	.LCFI14:
+ 352              		.cfi_def_cfa_offset 8
+ 353              		.cfi_offset 7, -8
+ 354              		.cfi_offset 14, -4
+ 355 0002 00AF     		add	r7, sp, #0
+ 356              	.LCFI15:
+ 357              		.cfi_def_cfa_register 7
+ 107:../TSL2561.c  **** 	return(begin11(TSL2561_ADDR));
+ 358              		.loc 1 107 0
+ 359 0004 4FF03900 		mov	r0, #57
+ 360 0008 FFF7FEFF 		bl	begin11
+ 361 000c 0346     		mov	r3, r0
+ 108:../TSL2561.c  **** }
+ 362              		.loc 1 108 0
+ 363 000e 1846     		mov	r0, r3
+ 364 0010 80BD     		pop	{r7, pc}
+ 365              		.cfi_endproc
+ 366              	.LFE123:
+ 368 0012 00BF     		.section	.text.begin11,"ax",%progbits
+ 369              		.align	2
+ 370              		.global	begin11
+ 371              		.thumb
+ 372              		.thumb_func
+ 374              	begin11:
+ 375              	.LFB124:
+ 109:../TSL2561.c  **** 
+ 110:../TSL2561.c  **** int begin11(char i2c_address)
+ 111:../TSL2561.c  **** {
+ 376              		.loc 1 111 0
+ 377              		.cfi_startproc
+ 378              		@ args = 0, pretend = 0, frame = 8
+ 379              		@ frame_needed = 1, uses_anonymous_args = 0
+ 380              		@ link register save eliminated.
+ 381 0000 80B4     		push	{r7}
+ 382              	.LCFI16:
+ 383              		.cfi_def_cfa_offset 4
+ 384              		.cfi_offset 7, -4
+ 385 0002 83B0     		sub	sp, sp, #12
+ 386              	.LCFI17:
+ 387              		.cfi_def_cfa_offset 16
+ 388 0004 00AF     		add	r7, sp, #0
+ 389              	.LCFI18:
+ 390              		.cfi_def_cfa_register 7
+ 391 0006 0346     		mov	r3, r0
+ 392 0008 FB71     		strb	r3, [r7, #7]
+ 112:../TSL2561.c  **** 	_i2c_address = i2c_address;
+ 393              		.loc 1 112 0
+ 394 000a 40F20003 		movw	r3, #:lower16:_i2c_address
+ 395 000e C0F20003 		movt	r3, #:upper16:_i2c_address
+ 396 0012 FA79     		ldrb	r2, [r7, #7]
+ 397 0014 1A70     		strb	r2, [r3, #0]
+ 113:../TSL2561.c  **** 
+ 114:../TSL2561.c  **** 	return TRUE;
+ 398              		.loc 1 114 0
+ 399 0016 4FF00103 		mov	r3, #1
+ 115:../TSL2561.c  **** }
+ 400              		.loc 1 115 0
+ 401 001a 1846     		mov	r0, r3
+ 402 001c 07F10C07 		add	r7, r7, #12
+ 403 0020 BD46     		mov	sp, r7
+ 404 0022 80BC     		pop	{r7}
+ 405 0024 7047     		bx	lr
+ 406              		.cfi_endproc
+ 407              	.LFE124:
+ 409 0026 00BF     		.section	.text.setPowerUp,"ax",%progbits
+ 410              		.align	2
+ 411              		.global	setPowerUp
+ 412              		.thumb
+ 413              		.thumb_func
+ 415              	setPowerUp:
+ 416              	.LFB125:
+ 116:../TSL2561.c  **** 
+ 117:../TSL2561.c  **** int setPowerUp(void)
+ 118:../TSL2561.c  **** 	// Turn on TSL2561, begin integrations
+ 119:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 120:../TSL2561.c  **** 	// (Also see getError() below)
+ 121:../TSL2561.c  **** {
+ 417              		.loc 1 121 0
+ 418              		.cfi_startproc
+ 419              		@ args = 0, pretend = 0, frame = 0
+ 420              		@ frame_needed = 1, uses_anonymous_args = 0
+ 421 0000 80B5     		push	{r7, lr}
+ 422              	.LCFI19:
+ 423              		.cfi_def_cfa_offset 8
+ 424              		.cfi_offset 7, -8
+ 425              		.cfi_offset 14, -4
+ 426 0002 00AF     		add	r7, sp, #0
+ 427              	.LCFI20:
+ 428              		.cfi_def_cfa_register 7
+ 122:../TSL2561.c  **** 	// Write 0x03 to command byte (power on)
+ 123:../TSL2561.c  **** 	return(writeByte(TSL2561_REG_CONTROL,0x03));
+ 429              		.loc 1 123 0
+ 430 0004 4FF00000 		mov	r0, #0
+ 431 0008 4FF00301 		mov	r1, #3
+ 432 000c FFF7FEFF 		bl	writeByte
+ 433 0010 0346     		mov	r3, r0
+ 124:../TSL2561.c  **** }
+ 434              		.loc 1 124 0
+ 435 0012 1846     		mov	r0, r3
+ 436 0014 80BD     		pop	{r7, pc}
+ 437              		.cfi_endproc
+ 438              	.LFE125:
+ 440 0016 00BF     		.section	.text.setPowerDown,"ax",%progbits
+ 441              		.align	2
+ 442              		.global	setPowerDown
+ 443              		.thumb
+ 444              		.thumb_func
+ 446              	setPowerDown:
+ 447              	.LFB126:
+ 125:../TSL2561.c  **** 
+ 126:../TSL2561.c  **** int setPowerDown(void)
+ 127:../TSL2561.c  **** 	// Turn off TSL2561
+ 128:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 129:../TSL2561.c  **** 	// (Also see getError() below)
+ 130:../TSL2561.c  **** {
+ 448              		.loc 1 130 0
+ 449              		.cfi_startproc
+ 450              		@ args = 0, pretend = 0, frame = 0
+ 451              		@ frame_needed = 1, uses_anonymous_args = 0
+ 452 0000 80B5     		push	{r7, lr}
+ 453              	.LCFI21:
+ 454              		.cfi_def_cfa_offset 8
+ 455              		.cfi_offset 7, -8
+ 456              		.cfi_offset 14, -4
+ 457 0002 00AF     		add	r7, sp, #0
+ 458              	.LCFI22:
+ 459              		.cfi_def_cfa_register 7
+ 131:../TSL2561.c  **** 	// Clear command byte (power off)
+ 132:../TSL2561.c  **** 	return(writeByte(TSL2561_REG_CONTROL,0x00));
+ 460              		.loc 1 132 0
+ 461 0004 4FF00000 		mov	r0, #0
+ 462 0008 4FF00001 		mov	r1, #0
+ 463 000c FFF7FEFF 		bl	writeByte
+ 464 0010 0346     		mov	r3, r0
+ 133:../TSL2561.c  **** }
+ 465              		.loc 1 133 0
+ 466 0012 1846     		mov	r0, r3
+ 467 0014 80BD     		pop	{r7, pc}
+ 468              		.cfi_endproc
+ 469              	.LFE126:
+ 471 0016 00BF     		.section	.text.setTiming,"ax",%progbits
+ 472              		.align	2
+ 473              		.global	setTiming
+ 474              		.thumb
+ 475              		.thumb_func
+ 477              	setTiming:
+ 478              	.LFB127:
+ 134:../TSL2561.c  **** 
+ 135:../TSL2561.c  **** int setTiming(int gain, unsigned char time)
+ 136:../TSL2561.c  **** 	// If gain = false (0), device is set to low gain (1X)
+ 137:../TSL2561.c  **** 	// If gain = high (1), device is set to high gain (16X)
+ 138:../TSL2561.c  **** 	// If time = 0, integration will be 13.7ms
+ 139:../TSL2561.c  **** 	// If time = 1, integration will be 101ms
+ 140:../TSL2561.c  **** 	// If time = 2, integration will be 402ms
+ 141:../TSL2561.c  **** 	// If time = 3, use manual start / stop
+ 142:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 143:../TSL2561.c  **** 	// (Also see getError() below)
+ 144:../TSL2561.c  **** {
+ 479              		.loc 1 144 0
+ 480              		.cfi_startproc
+ 481              		@ args = 0, pretend = 0, frame = 16
+ 482              		@ frame_needed = 1, uses_anonymous_args = 0
+ 483 0000 80B5     		push	{r7, lr}
+ 484              	.LCFI23:
+ 485              		.cfi_def_cfa_offset 8
+ 486              		.cfi_offset 7, -8
+ 487              		.cfi_offset 14, -4
+ 488 0002 84B0     		sub	sp, sp, #16
+ 489              	.LCFI24:
+ 490              		.cfi_def_cfa_offset 24
+ 491 0004 00AF     		add	r7, sp, #0
+ 492              	.LCFI25:
+ 493              		.cfi_def_cfa_register 7
+ 494 0006 7860     		str	r0, [r7, #4]
+ 495 0008 0B46     		mov	r3, r1
+ 496 000a FB70     		strb	r3, [r7, #3]
+ 145:../TSL2561.c  **** 	unsigned char timing;
+ 146:../TSL2561.c  **** 
+ 147:../TSL2561.c  **** 	// Get timing byte
+ 148:../TSL2561.c  **** 	if (readByte(TSL2561_REG_TIMING,&timing))
+ 497              		.loc 1 148 0
+ 498 000c 07F10F03 		add	r3, r7, #15
+ 499 0010 4FF00100 		mov	r0, #1
+ 500 0014 1946     		mov	r1, r3
+ 501 0016 FFF7FEFF 		bl	readByte
+ 502 001a 0346     		mov	r3, r0
+ 503 001c 002B     		cmp	r3, #0
+ 504 001e 28D0     		beq	.L20
+ 149:../TSL2561.c  **** 	{
+ 150:../TSL2561.c  **** 		// Set gain (0 or 1)
+ 151:../TSL2561.c  **** 		if (gain)
+ 505              		.loc 1 151 0
+ 506 0020 7B68     		ldr	r3, [r7, #4]
+ 507 0022 002B     		cmp	r3, #0
+ 508 0024 05D0     		beq	.L21
+ 152:../TSL2561.c  **** 			timing |= 0x10;
+ 509              		.loc 1 152 0
+ 510 0026 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 511 0028 43F01003 		orr	r3, r3, #16
+ 512 002c DBB2     		uxtb	r3, r3
+ 513 002e FB73     		strb	r3, [r7, #15]
+ 514 0030 04E0     		b	.L22
+ 515              	.L21:
+ 153:../TSL2561.c  **** 		else
+ 154:../TSL2561.c  **** 			timing &= ~0x10;
+ 516              		.loc 1 154 0
+ 517 0032 FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 518 0034 23F01003 		bic	r3, r3, #16
+ 519 0038 DBB2     		uxtb	r3, r3
+ 520 003a FB73     		strb	r3, [r7, #15]
+ 521              	.L22:
+ 155:../TSL2561.c  **** 
+ 156:../TSL2561.c  **** 		// Set integration time (0 to 3)
+ 157:../TSL2561.c  **** 		timing &= ~0x03;
+ 522              		.loc 1 157 0
+ 523 003c FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 524 003e 23F00303 		bic	r3, r3, #3
+ 525 0042 DBB2     		uxtb	r3, r3
+ 526 0044 FB73     		strb	r3, [r7, #15]
+ 158:../TSL2561.c  **** 		timing |= (time & 0x03);
+ 527              		.loc 1 158 0
+ 528 0046 FB78     		ldrb	r3, [r7, #3]	@ zero_extendqisi2
+ 529 0048 03F00303 		and	r3, r3, #3
+ 530 004c DAB2     		uxtb	r2, r3
+ 531 004e FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 532 0050 DBB2     		uxtb	r3, r3
+ 533 0052 1343     		orrs	r3, r3, r2
+ 534 0054 DBB2     		uxtb	r3, r3
+ 535 0056 DBB2     		uxtb	r3, r3
+ 536 0058 FB73     		strb	r3, [r7, #15]
+ 159:../TSL2561.c  **** 
+ 160:../TSL2561.c  **** 		// Write modified timing byte back to device
+ 161:../TSL2561.c  **** 		if (writeByte(TSL2561_REG_TIMING,timing))
+ 537              		.loc 1 161 0
+ 538 005a FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 539 005c 4FF00100 		mov	r0, #1
+ 540 0060 1946     		mov	r1, r3
+ 541 0062 FFF7FEFF 		bl	writeByte
+ 542 0066 0346     		mov	r3, r0
+ 543 0068 002B     		cmp	r3, #0
+ 544 006a 02D0     		beq	.L20
+ 162:../TSL2561.c  **** 			return(TRUE);
+ 545              		.loc 1 162 0
+ 546 006c 4FF00103 		mov	r3, #1
+ 547 0070 01E0     		b	.L24
+ 548              	.L20:
+ 163:../TSL2561.c  **** 	}
+ 164:../TSL2561.c  **** 	return(FALSE);
+ 549              		.loc 1 164 0
+ 550 0072 4FF00003 		mov	r3, #0
+ 551              	.L24:
+ 165:../TSL2561.c  **** }
+ 552              		.loc 1 165 0
+ 553 0076 1846     		mov	r0, r3
+ 554 0078 07F11007 		add	r7, r7, #16
+ 555 007c BD46     		mov	sp, r7
+ 556 007e 80BD     		pop	{r7, pc}
+ 557              		.cfi_endproc
+ 558              	.LFE127:
+ 560              		.section	.text.setTiming1,"ax",%progbits
+ 561              		.align	2
+ 562              		.global	setTiming1
+ 563              		.thumb
+ 564              		.thumb_func
+ 566              	setTiming1:
+ 567              	.LFB128:
+ 166:../TSL2561.c  **** 
+ 167:../TSL2561.c  **** 
+ 168:../TSL2561.c  **** int setTiming1(int gain, unsigned char time, unsigned int *ms)
+ 169:../TSL2561.c  **** 	// If gain = false (0), device is set to low gain (1X)
+ 170:../TSL2561.c  **** 	// If gain = high (1), device is set to high gain (16X)
+ 171:../TSL2561.c  **** 	// If time = 0, integration will be 13.7ms
+ 172:../TSL2561.c  **** 	// If time = 1, integration will be 101ms
+ 173:../TSL2561.c  **** 	// If time = 2, integration will be 402ms
+ 174:../TSL2561.c  **** 	// If time = 3, use manual start / stop (ms = 0)
+ 175:../TSL2561.c  **** 	// ms will be set to integration time
+ 176:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 177:../TSL2561.c  **** 	// (Also see getError() below)
+ 178:../TSL2561.c  **** {
+ 568              		.loc 1 178 0
+ 569              		.cfi_startproc
+ 570              		@ args = 0, pretend = 0, frame = 16
+ 571              		@ frame_needed = 1, uses_anonymous_args = 0
+ 572 0000 80B5     		push	{r7, lr}
+ 573              	.LCFI26:
+ 574              		.cfi_def_cfa_offset 8
+ 575              		.cfi_offset 7, -8
+ 576              		.cfi_offset 14, -4
+ 577 0002 84B0     		sub	sp, sp, #16
+ 578              	.LCFI27:
+ 579              		.cfi_def_cfa_offset 24
+ 580 0004 00AF     		add	r7, sp, #0
+ 581              	.LCFI28:
+ 582              		.cfi_def_cfa_register 7
+ 583 0006 F860     		str	r0, [r7, #12]
+ 584 0008 0B46     		mov	r3, r1
+ 585 000a 7A60     		str	r2, [r7, #4]
+ 586 000c FB72     		strb	r3, [r7, #11]
+ 179:../TSL2561.c  **** 	// Calculate ms for user
+ 180:../TSL2561.c  **** 	switch (time)
+ 587              		.loc 1 180 0
+ 588 000e FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 589 0010 012B     		cmp	r3, #1
+ 590 0012 08D0     		beq	.L28
+ 591 0014 022B     		cmp	r3, #2
+ 592 0016 0BD0     		beq	.L29
+ 593 0018 002B     		cmp	r3, #0
+ 594 001a 0ED1     		bne	.L32
+ 595              	.L27:
+ 181:../TSL2561.c  **** 	{
+ 182:../TSL2561.c  **** 		case 0: *ms = 14; break;
+ 596              		.loc 1 182 0
+ 597 001c 7B68     		ldr	r3, [r7, #4]
+ 598 001e 4FF00E02 		mov	r2, #14
+ 599 0022 1A60     		str	r2, [r3, #0]
+ 600 0024 0DE0     		b	.L30
+ 601              	.L28:
+ 183:../TSL2561.c  **** 		case 1: *ms = 101; break;
+ 602              		.loc 1 183 0
+ 603 0026 7B68     		ldr	r3, [r7, #4]
+ 604 0028 4FF06502 		mov	r2, #101
+ 605 002c 1A60     		str	r2, [r3, #0]
+ 606 002e 08E0     		b	.L30
+ 607              	.L29:
+ 184:../TSL2561.c  **** 		case 2: *ms = 402; break;
+ 608              		.loc 1 184 0
+ 609 0030 7B68     		ldr	r3, [r7, #4]
+ 610 0032 4FF4C972 		mov	r2, #402
+ 611 0036 1A60     		str	r2, [r3, #0]
+ 612 0038 03E0     		b	.L30
+ 613              	.L32:
+ 185:../TSL2561.c  **** 		default: *ms = 0;
+ 614              		.loc 1 185 0
+ 615 003a 7B68     		ldr	r3, [r7, #4]
+ 616 003c 4FF00002 		mov	r2, #0
+ 617 0040 1A60     		str	r2, [r3, #0]
+ 618              	.L30:
+ 186:../TSL2561.c  **** 	}
+ 187:../TSL2561.c  **** 	// Set integration using base function
+ 188:../TSL2561.c  **** 	return(setTiming(gain,time));
+ 619              		.loc 1 188 0
+ 620 0042 FB7A     		ldrb	r3, [r7, #11]	@ zero_extendqisi2
+ 621 0044 F868     		ldr	r0, [r7, #12]
+ 622 0046 1946     		mov	r1, r3
+ 623 0048 FFF7FEFF 		bl	setTiming
+ 624 004c 0346     		mov	r3, r0
+ 189:../TSL2561.c  **** }
+ 625              		.loc 1 189 0
+ 626 004e 1846     		mov	r0, r3
+ 627 0050 07F11007 		add	r7, r7, #16
+ 628 0054 BD46     		mov	sp, r7
+ 629 0056 80BD     		pop	{r7, pc}
+ 630              		.cfi_endproc
+ 631              	.LFE128:
+ 633              		.section	.text.manualStart,"ax",%progbits
+ 634              		.align	2
+ 635              		.global	manualStart
+ 636              		.thumb
+ 637              		.thumb_func
+ 639              	manualStart:
+ 640              	.LFB129:
+ 190:../TSL2561.c  **** 
+ 191:../TSL2561.c  **** int manualStart(void)
+ 192:../TSL2561.c  **** 	// Starts a manual integration period
+ 193:../TSL2561.c  **** 	// After running this command, you must manually stop integration with manualStop()
+ 194:../TSL2561.c  **** 	// Internally sets integration time to 3 for manual integration (gain is unchanged)
+ 195:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 196:../TSL2561.c  **** 	// (Also see getError() below)
+ 197:../TSL2561.c  **** {
+ 641              		.loc 1 197 0
+ 642              		.cfi_startproc
+ 643              		@ args = 0, pretend = 0, frame = 8
+ 644              		@ frame_needed = 1, uses_anonymous_args = 0
+ 645 0000 80B5     		push	{r7, lr}
+ 646              	.LCFI29:
+ 647              		.cfi_def_cfa_offset 8
+ 648              		.cfi_offset 7, -8
+ 649              		.cfi_offset 14, -4
+ 650 0002 82B0     		sub	sp, sp, #8
+ 651              	.LCFI30:
+ 652              		.cfi_def_cfa_offset 16
+ 653 0004 00AF     		add	r7, sp, #0
+ 654              	.LCFI31:
+ 655              		.cfi_def_cfa_register 7
+ 198:../TSL2561.c  **** 	unsigned char timing;
+ 199:../TSL2561.c  **** 
+ 200:../TSL2561.c  **** 	// Get timing byte
+ 201:../TSL2561.c  **** 	if (readByte(TSL2561_REG_TIMING,&timing))
+ 656              		.loc 1 201 0
+ 657 0006 07F10703 		add	r3, r7, #7
+ 658 000a 4FF00100 		mov	r0, #1
+ 659 000e 1946     		mov	r1, r3
+ 660 0010 FFF7FEFF 		bl	readByte
+ 661 0014 0346     		mov	r3, r0
+ 662 0016 002B     		cmp	r3, #0
+ 663 0018 1ED0     		beq	.L34
+ 202:../TSL2561.c  **** 	{
+ 203:../TSL2561.c  **** 		// Set integration time to 3 (manual integration)
+ 204:../TSL2561.c  **** 		timing |= 0x03;
+ 664              		.loc 1 204 0
+ 665 001a FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 666 001c 43F00303 		orr	r3, r3, #3
+ 667 0020 DBB2     		uxtb	r3, r3
+ 668 0022 FB71     		strb	r3, [r7, #7]
+ 205:../TSL2561.c  **** 
+ 206:../TSL2561.c  **** 		if (writeByte(TSL2561_REG_TIMING,timing))
+ 669              		.loc 1 206 0
+ 670 0024 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 671 0026 4FF00100 		mov	r0, #1
+ 672 002a 1946     		mov	r1, r3
+ 673 002c FFF7FEFF 		bl	writeByte
+ 674 0030 0346     		mov	r3, r0
+ 675 0032 002B     		cmp	r3, #0
+ 676 0034 10D0     		beq	.L34
+ 207:../TSL2561.c  **** 		{
+ 208:../TSL2561.c  **** 			// Begin manual integration
+ 209:../TSL2561.c  **** 			timing |= 0x08;
+ 677              		.loc 1 209 0
+ 678 0036 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 679 0038 43F00803 		orr	r3, r3, #8
+ 680 003c DBB2     		uxtb	r3, r3
+ 681 003e FB71     		strb	r3, [r7, #7]
+ 210:../TSL2561.c  **** 
+ 211:../TSL2561.c  **** 			// Write modified timing byte back to device
+ 212:../TSL2561.c  **** 			if (writeByte(TSL2561_REG_TIMING,timing))
+ 682              		.loc 1 212 0
+ 683 0040 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 684 0042 4FF00100 		mov	r0, #1
+ 685 0046 1946     		mov	r1, r3
+ 686 0048 FFF7FEFF 		bl	writeByte
+ 687 004c 0346     		mov	r3, r0
+ 688 004e 002B     		cmp	r3, #0
+ 689 0050 02D0     		beq	.L34
+ 213:../TSL2561.c  **** 				return(TRUE);
+ 690              		.loc 1 213 0
+ 691 0052 4FF00103 		mov	r3, #1
+ 692 0056 01E0     		b	.L36
+ 693              	.L34:
+ 214:../TSL2561.c  **** 		}
+ 215:../TSL2561.c  **** 	}
+ 216:../TSL2561.c  **** 	return(FALSE);
+ 694              		.loc 1 216 0
+ 695 0058 4FF00003 		mov	r3, #0
+ 696              	.L36:
+ 217:../TSL2561.c  **** }
+ 697              		.loc 1 217 0
+ 698 005c 1846     		mov	r0, r3
+ 699 005e 07F10807 		add	r7, r7, #8
+ 700 0062 BD46     		mov	sp, r7
+ 701 0064 80BD     		pop	{r7, pc}
+ 702              		.cfi_endproc
+ 703              	.LFE129:
+ 705 0066 00BF     		.section	.text.manualStop,"ax",%progbits
+ 706              		.align	2
+ 707              		.global	manualStop
+ 708              		.thumb
+ 709              		.thumb_func
+ 711              	manualStop:
+ 712              	.LFB130:
+ 218:../TSL2561.c  **** 
+ 219:../TSL2561.c  **** int manualStop(void)
+ 220:../TSL2561.c  **** 	// Stops a manual integration period
+ 221:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 222:../TSL2561.c  **** 	// (Also see getError() below)
+ 223:../TSL2561.c  **** {
+ 713              		.loc 1 223 0
+ 714              		.cfi_startproc
+ 715              		@ args = 0, pretend = 0, frame = 8
+ 716              		@ frame_needed = 1, uses_anonymous_args = 0
+ 717 0000 80B5     		push	{r7, lr}
+ 718              	.LCFI32:
+ 719              		.cfi_def_cfa_offset 8
+ 720              		.cfi_offset 7, -8
+ 721              		.cfi_offset 14, -4
+ 722 0002 82B0     		sub	sp, sp, #8
+ 723              	.LCFI33:
+ 724              		.cfi_def_cfa_offset 16
+ 725 0004 00AF     		add	r7, sp, #0
+ 726              	.LCFI34:
+ 727              		.cfi_def_cfa_register 7
+ 224:../TSL2561.c  **** 	unsigned char timing;
+ 225:../TSL2561.c  **** 
+ 226:../TSL2561.c  **** 	// Get timing byte
+ 227:../TSL2561.c  **** 	if (readByte(TSL2561_REG_TIMING,&timing))
+ 728              		.loc 1 227 0
+ 729 0006 07F10703 		add	r3, r7, #7
+ 730 000a 4FF00100 		mov	r0, #1
+ 731 000e 1946     		mov	r1, r3
+ 732 0010 FFF7FEFF 		bl	readByte
+ 733 0014 0346     		mov	r3, r0
+ 734 0016 002B     		cmp	r3, #0
+ 735 0018 10D0     		beq	.L38
+ 228:../TSL2561.c  **** 	{
+ 229:../TSL2561.c  **** 		// Stop manual integration
+ 230:../TSL2561.c  **** 		timing &= ~0x08;
+ 736              		.loc 1 230 0
+ 737 001a FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 738 001c 23F00803 		bic	r3, r3, #8
+ 739 0020 DBB2     		uxtb	r3, r3
+ 740 0022 FB71     		strb	r3, [r7, #7]
+ 231:../TSL2561.c  **** 
+ 232:../TSL2561.c  **** 		// Write modified timing byte back to device
+ 233:../TSL2561.c  **** 		if (writeByte(TSL2561_REG_TIMING,timing))
+ 741              		.loc 1 233 0
+ 742 0024 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 743 0026 4FF00100 		mov	r0, #1
+ 744 002a 1946     		mov	r1, r3
+ 745 002c FFF7FEFF 		bl	writeByte
+ 746 0030 0346     		mov	r3, r0
+ 747 0032 002B     		cmp	r3, #0
+ 748 0034 02D0     		beq	.L38
+ 234:../TSL2561.c  **** 			return(TRUE);
+ 749              		.loc 1 234 0
+ 750 0036 4FF00103 		mov	r3, #1
+ 751 003a 01E0     		b	.L40
+ 752              	.L38:
+ 235:../TSL2561.c  **** 	}
+ 236:../TSL2561.c  **** 	return(FALSE);
+ 753              		.loc 1 236 0
+ 754 003c 4FF00003 		mov	r3, #0
+ 755              	.L40:
+ 237:../TSL2561.c  **** }
+ 756              		.loc 1 237 0
+ 757 0040 1846     		mov	r0, r3
+ 758 0042 07F10807 		add	r7, r7, #8
+ 759 0046 BD46     		mov	sp, r7
+ 760 0048 80BD     		pop	{r7, pc}
+ 761              		.cfi_endproc
+ 762              	.LFE130:
+ 764 004a 00BF     		.section	.text.getData,"ax",%progbits
+ 765              		.align	2
+ 766              		.global	getData
+ 767              		.thumb
+ 768              		.thumb_func
+ 770              	getData:
+ 771              	.LFB131:
+ 238:../TSL2561.c  **** 
+ 239:../TSL2561.c  **** int getData(unsigned int *data0, unsigned int *data1)
+ 240:../TSL2561.c  **** 	// Retrieve raw integration results
+ 241:../TSL2561.c  **** 	// data0 and data1 will be set to integration results
+ 242:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 243:../TSL2561.c  **** 	// (Also see getError() below)
+ 244:../TSL2561.c  **** {
+ 772              		.loc 1 244 0
+ 773              		.cfi_startproc
+ 774              		@ args = 0, pretend = 0, frame = 8
+ 775              		@ frame_needed = 1, uses_anonymous_args = 0
+ 776 0000 80B5     		push	{r7, lr}
+ 777              	.LCFI35:
+ 778              		.cfi_def_cfa_offset 8
+ 779              		.cfi_offset 7, -8
+ 780              		.cfi_offset 14, -4
+ 781 0002 82B0     		sub	sp, sp, #8
+ 782              	.LCFI36:
+ 783              		.cfi_def_cfa_offset 16
+ 784 0004 00AF     		add	r7, sp, #0
+ 785              	.LCFI37:
+ 786              		.cfi_def_cfa_register 7
+ 787 0006 7860     		str	r0, [r7, #4]
+ 788 0008 3960     		str	r1, [r7, #0]
+ 245:../TSL2561.c  **** 	// Get data0 and data1 out of result registers
+ 246:../TSL2561.c  **** 	if (!readUInt(TSL2561_REG_DATA_0,data0))
+ 789              		.loc 1 246 0
+ 790 000a 4FF00C00 		mov	r0, #12
+ 791 000e 7968     		ldr	r1, [r7, #4]
+ 792 0010 FFF7FEFF 		bl	readUInt
+ 793 0014 0346     		mov	r3, r0
+ 794 0016 002B     		cmp	r3, #0
+ 795 0018 02D1     		bne	.L42
+ 247:../TSL2561.c  **** 	{
+ 248:../TSL2561.c  **** 		return(FALSE);
+ 796              		.loc 1 248 0
+ 797 001a 4FF00003 		mov	r3, #0
+ 798 001e 0CE0     		b	.L43
+ 799              	.L42:
+ 249:../TSL2561.c  **** 	}
+ 250:../TSL2561.c  **** 
+ 251:../TSL2561.c  **** 
+ 252:../TSL2561.c  **** 	if(!readUInt(TSL2561_REG_DATA_1,data1))
+ 800              		.loc 1 252 0
+ 801 0020 4FF00E00 		mov	r0, #14
+ 802 0024 3968     		ldr	r1, [r7, #0]
+ 803 0026 FFF7FEFF 		bl	readUInt
+ 804 002a 0346     		mov	r3, r0
+ 805 002c 002B     		cmp	r3, #0
+ 806 002e 02D1     		bne	.L44
+ 253:../TSL2561.c  **** 	{
+ 254:../TSL2561.c  **** 		return(FALSE);
+ 807              		.loc 1 254 0
+ 808 0030 4FF00003 		mov	r3, #0
+ 809 0034 01E0     		b	.L43
+ 810              	.L44:
+ 255:../TSL2561.c  **** 	}
+ 256:../TSL2561.c  **** 
+ 257:../TSL2561.c  **** 	return(TRUE);
+ 811              		.loc 1 257 0
+ 812 0036 4FF00103 		mov	r3, #1
+ 813              	.L43:
+ 258:../TSL2561.c  **** }
+ 814              		.loc 1 258 0
+ 815 003a 1846     		mov	r0, r3
+ 816 003c 07F10807 		add	r7, r7, #8
+ 817 0040 BD46     		mov	sp, r7
+ 818 0042 80BD     		pop	{r7, pc}
+ 819              		.cfi_endproc
+ 820              	.LFE131:
+ 822              		.global	__aeabi_ui2d
+ 823              		.global	__aeabi_ddiv
+ 824              		.global	__aeabi_dmul
+ 825              		.global	__aeabi_dcmplt
+ 826              		.global	__aeabi_dsub
+ 827              		.section	.text.getLux,"ax",%progbits
+ 828              		.align	2
+ 829              		.global	getLux
+ 830              		.thumb
+ 831              		.thumb_func
+ 833              	getLux:
+ 834              	.LFB132:
+ 259:../TSL2561.c  **** 
+ 260:../TSL2561.c  **** int getLux(unsigned char gain, unsigned int ms, unsigned int CH0, unsigned int CH1, double *lux)
+ 261:../TSL2561.c  **** 	// Convert raw data to lux
+ 262:../TSL2561.c  **** 	// gain: 0 (1X) or 1 (16X), see setTiming()
+ 263:../TSL2561.c  **** 	// ms: integration time in ms, from setTiming() or from manual integration
+ 264:../TSL2561.c  **** 	// CH0, CH1: results from getData()
+ 265:../TSL2561.c  **** 	// lux will be set to resulting lux calculation
+ 266:../TSL2561.c  **** 	// returns true (1) if calculation was successful
+ 267:../TSL2561.c  **** 	// RETURNS false (0) AND lux = 0.0 IF EITHER SENSOR WAS SATURATED (0XFFFF)
+ 268:../TSL2561.c  **** {
+ 835              		.loc 1 268 0
+ 836              		.cfi_startproc
+ 837              		@ args = 4, pretend = 0, frame = 40
+ 838              		@ frame_needed = 1, uses_anonymous_args = 0
+ 839 0000 2DE9B043 		push	{r4, r5, r7, r8, r9, lr}
+ 840              	.LCFI38:
+ 841              		.cfi_def_cfa_offset 24
+ 842              		.cfi_offset 4, -24
+ 843              		.cfi_offset 5, -20
+ 844              		.cfi_offset 7, -16
+ 845              		.cfi_offset 8, -12
+ 846              		.cfi_offset 9, -8
+ 847              		.cfi_offset 14, -4
+ 848 0004 8AB0     		sub	sp, sp, #40
+ 849              	.LCFI39:
+ 850              		.cfi_def_cfa_offset 64
+ 851 0006 00AF     		add	r7, sp, #0
+ 852              	.LCFI40:
+ 853              		.cfi_def_cfa_register 7
+ 854 0008 B960     		str	r1, [r7, #8]
+ 855 000a 7A60     		str	r2, [r7, #4]
+ 856 000c 3B60     		str	r3, [r7, #0]
+ 857 000e 0346     		mov	r3, r0
+ 858 0010 FB73     		strb	r3, [r7, #15]
+ 269:../TSL2561.c  **** 	double ratio, d0, d1;
+ 270:../TSL2561.c  **** 
+ 271:../TSL2561.c  **** 	// Determine if either sensor saturated (0xFFFF)
+ 272:../TSL2561.c  **** 	// If so, abandon ship (calculation will not be accurate)
+ 273:../TSL2561.c  **** 	if ((CH0 == 0xFFFF) || (CH1 == 0xFFFF))
+ 859              		.loc 1 273 0
+ 860 0012 7A68     		ldr	r2, [r7, #4]
+ 861 0014 4FF6FF73 		movw	r3, #65535
+ 862 0018 9A42     		cmp	r2, r3
+ 863 001a 04D0     		beq	.L46
+ 864              		.loc 1 273 0 is_stmt 0 discriminator 1
+ 865 001c 3A68     		ldr	r2, [r7, #0]
+ 866 001e 4FF6FF73 		movw	r3, #65535
+ 867 0022 9A42     		cmp	r2, r3
+ 868 0024 09D1     		bne	.L47
+ 869              	.L46:
+ 274:../TSL2561.c  **** 	{
+ 275:../TSL2561.c  **** 		*lux = 0.0;
+ 870              		.loc 1 275 0 is_stmt 1
+ 871 0026 396C     		ldr	r1, [r7, #64]
+ 872 0028 4FF00002 		mov	r2, #0
+ 873 002c 4FF00003 		mov	r3, #0
+ 874 0030 C1E90023 		strd	r2, [r1]
+ 276:../TSL2561.c  **** 		return(FALSE);
+ 875              		.loc 1 276 0
+ 876 0034 4FF00003 		mov	r3, #0
+ 877 0038 23E1     		b	.L48
+ 878              	.L47:
+ 277:../TSL2561.c  **** 	}
+ 278:../TSL2561.c  **** 
+ 279:../TSL2561.c  **** 	// Convert from unsigned integer to floating point
+ 280:../TSL2561.c  **** 	d0 = CH0; d1 = CH1;
+ 879              		.loc 1 280 0
+ 880 003a 7868     		ldr	r0, [r7, #4]
+ 881 003c FFF7FEFF 		bl	__aeabi_ui2d
+ 882 0040 0246     		mov	r2, r0
+ 883 0042 0B46     		mov	r3, r1
+ 884 0044 C7E90823 		strd	r2, [r7, #32]
+ 885 0048 3868     		ldr	r0, [r7, #0]
+ 886 004a FFF7FEFF 		bl	__aeabi_ui2d
+ 887 004e 0246     		mov	r2, r0
+ 888 0050 0B46     		mov	r3, r1
+ 889 0052 C7E90623 		strd	r2, [r7, #24]
+ 281:../TSL2561.c  **** 
+ 282:../TSL2561.c  **** 	// We will need the ratio for subsequent calculations
+ 283:../TSL2561.c  **** 	ratio = d1 / d0;
+ 890              		.loc 1 283 0
+ 891 0056 D7E90601 		ldrd	r0, [r7, #24]
+ 892 005a D7E90823 		ldrd	r2, [r7, #32]
+ 893 005e FFF7FEFF 		bl	__aeabi_ddiv
+ 894 0062 0246     		mov	r2, r0
+ 895 0064 0B46     		mov	r3, r1
+ 896 0066 C7E90423 		strd	r2, [r7, #16]
+ 284:../TSL2561.c  **** 
+ 285:../TSL2561.c  **** 	// Normalize for integration time
+ 286:../TSL2561.c  **** 	d0 *= (402.0/ms);
+ 897              		.loc 1 286 0
+ 898 006a B868     		ldr	r0, [r7, #8]
+ 899 006c FFF7FEFF 		bl	__aeabi_ui2d
+ 900 0070 0246     		mov	r2, r0
+ 901 0072 0B46     		mov	r3, r1
+ 902 0074 86A1     		adr	r1, .L66
+ 903 0076 D1E90001 		ldrd	r0, [r1]
+ 904 007a FFF7FEFF 		bl	__aeabi_ddiv
+ 905 007e 0246     		mov	r2, r0
+ 906 0080 0B46     		mov	r3, r1
+ 907 0082 D7E90801 		ldrd	r0, [r7, #32]
+ 908 0086 FFF7FEFF 		bl	__aeabi_dmul
+ 909 008a 0246     		mov	r2, r0
+ 910 008c 0B46     		mov	r3, r1
+ 911 008e C7E90823 		strd	r2, [r7, #32]
+ 287:../TSL2561.c  **** 	d1 *= (402.0/ms);
+ 912              		.loc 1 287 0
+ 913 0092 B868     		ldr	r0, [r7, #8]
+ 914 0094 FFF7FEFF 		bl	__aeabi_ui2d
+ 915 0098 0246     		mov	r2, r0
+ 916 009a 0B46     		mov	r3, r1
+ 917 009c 7CA1     		adr	r1, .L66
+ 918 009e D1E90001 		ldrd	r0, [r1]
+ 919 00a2 FFF7FEFF 		bl	__aeabi_ddiv
+ 920 00a6 0246     		mov	r2, r0
+ 921 00a8 0B46     		mov	r3, r1
+ 922 00aa D7E90601 		ldrd	r0, [r7, #24]
+ 923 00ae FFF7FEFF 		bl	__aeabi_dmul
+ 924 00b2 0246     		mov	r2, r0
+ 925 00b4 0B46     		mov	r3, r1
+ 926 00b6 C7E90623 		strd	r2, [r7, #24]
+ 288:../TSL2561.c  **** 
+ 289:../TSL2561.c  **** 	// Normalize for gain
+ 290:../TSL2561.c  **** 	if (!gain)
+ 927              		.loc 1 290 0
+ 928 00ba FB7B     		ldrb	r3, [r7, #15]	@ zero_extendqisi2
+ 929 00bc 002B     		cmp	r3, #0
+ 930 00be 1BD1     		bne	.L49
+ 291:../TSL2561.c  **** 	{
+ 292:../TSL2561.c  **** 		d0 *= 16;
+ 931              		.loc 1 292 0
+ 932 00c0 D7E90801 		ldrd	r0, [r7, #32]
+ 933 00c4 4FF00002 		mov	r2, #0
+ 934 00c8 4FF00003 		mov	r3, #0
+ 935 00cc C4F23003 		movt	r3, 16432
+ 936 00d0 FFF7FEFF 		bl	__aeabi_dmul
+ 937 00d4 0246     		mov	r2, r0
+ 938 00d6 0B46     		mov	r3, r1
+ 939 00d8 C7E90823 		strd	r2, [r7, #32]
+ 293:../TSL2561.c  **** 		d1 *= 16;
+ 940              		.loc 1 293 0
+ 941 00dc D7E90601 		ldrd	r0, [r7, #24]
+ 942 00e0 4FF00002 		mov	r2, #0
+ 943 00e4 4FF00003 		mov	r3, #0
+ 944 00e8 C4F23003 		movt	r3, 16432
+ 945 00ec FFF7FEFF 		bl	__aeabi_dmul
+ 946 00f0 0246     		mov	r2, r0
+ 947 00f2 0B46     		mov	r3, r1
+ 948 00f4 C7E90623 		strd	r2, [r7, #24]
+ 949              	.L49:
+ 294:../TSL2561.c  **** 	}
+ 295:../TSL2561.c  **** 
+ 296:../TSL2561.c  **** 	// Determine lux per datasheet equations:
+ 297:../TSL2561.c  **** 
+ 298:../TSL2561.c  **** 	if (ratio < 0.5)
+ 950              		.loc 1 298 0
+ 951 00f8 D7E90401 		ldrd	r0, [r7, #16]
+ 952 00fc 4FF00002 		mov	r2, #0
+ 953 0100 4FF00003 		mov	r3, #0
+ 954 0104 C3F6E073 		movt	r3, 16352
+ 955 0108 FFF7FEFF 		bl	__aeabi_dcmplt
+ 956 010c 0346     		mov	r3, r0
+ 957 010e 002B     		cmp	r3, #0
+ 958 0110 30D0     		beq	.L62
+ 959              	.L58:
+ 299:../TSL2561.c  **** 	{
+ 300:../TSL2561.c  **** 		*lux = 0.0304 * d0 - 0.062 * d0 * pow(ratio,1.4);
+ 960              		.loc 1 300 0
+ 961 0112 D7E90801 		ldrd	r0, [r7, #32]
+ 962 0116 60A3     		adr	r3, .L66+8
+ 963 0118 D3E90023 		ldrd	r2, [r3]
+ 964 011c FFF7FEFF 		bl	__aeabi_dmul
+ 965 0120 0246     		mov	r2, r0
+ 966 0122 0B46     		mov	r3, r1
+ 967 0124 1446     		mov	r4, r2
+ 968 0126 1D46     		mov	r5, r3
+ 969 0128 D7E90801 		ldrd	r0, [r7, #32]
+ 970 012c 5CA3     		adr	r3, .L66+16
+ 971 012e D3E90023 		ldrd	r2, [r3]
+ 972 0132 FFF7FEFF 		bl	__aeabi_dmul
+ 973 0136 0246     		mov	r2, r0
+ 974 0138 0B46     		mov	r3, r1
+ 975 013a 9046     		mov	r8, r2
+ 976 013c 9946     		mov	r9, r3
+ 977 013e D7E90401 		ldrd	r0, [r7, #16]
+ 978 0142 59A3     		adr	r3, .L66+24
+ 979 0144 D3E90023 		ldrd	r2, [r3]
+ 980 0148 FFF7FEFF 		bl	pow
+ 981 014c 0246     		mov	r2, r0
+ 982 014e 0B46     		mov	r3, r1
+ 983 0150 4046     		mov	r0, r8
+ 984 0152 4946     		mov	r1, r9
+ 985 0154 FFF7FEFF 		bl	__aeabi_dmul
+ 986 0158 0246     		mov	r2, r0
+ 987 015a 0B46     		mov	r3, r1
+ 988 015c 2046     		mov	r0, r4
+ 989 015e 2946     		mov	r1, r5
+ 990 0160 FFF7FEFF 		bl	__aeabi_dsub
+ 991 0164 0246     		mov	r2, r0
+ 992 0166 0B46     		mov	r3, r1
+ 993 0168 396C     		ldr	r1, [r7, #64]
+ 994 016a C1E90023 		strd	r2, [r1]
+ 301:../TSL2561.c  **** 		return(TRUE);
+ 995              		.loc 1 301 0
+ 996 016e 4FF00103 		mov	r3, #1
+ 997 0172 86E0     		b	.L48
+ 998              	.L62:
+ 302:../TSL2561.c  **** 	}
+ 303:../TSL2561.c  **** 
+ 304:../TSL2561.c  **** 	if (ratio < 0.61)
+ 999              		.loc 1 304 0
+ 1000 0174 D7E90401 		ldrd	r0, [r7, #16]
+ 1001 0178 4DA3     		adr	r3, .L66+32
+ 1002 017a D3E90023 		ldrd	r2, [r3]
+ 1003 017e FFF7FEFF 		bl	__aeabi_dcmplt
+ 1004 0182 0346     		mov	r3, r0
+ 1005 0184 002B     		cmp	r3, #0
+ 1006 0186 1FD0     		beq	.L63
+ 1007              	.L59:
+ 305:../TSL2561.c  **** 	{
+ 306:../TSL2561.c  **** 		*lux = 0.0224 * d0 - 0.031 * d1;
+ 1008              		.loc 1 306 0
+ 1009 0188 D7E90801 		ldrd	r0, [r7, #32]
+ 1010 018c 4AA3     		adr	r3, .L66+40
+ 1011 018e D3E90023 		ldrd	r2, [r3]
+ 1012 0192 FFF7FEFF 		bl	__aeabi_dmul
+ 1013 0196 0246     		mov	r2, r0
+ 1014 0198 0B46     		mov	r3, r1
+ 1015 019a 1446     		mov	r4, r2
+ 1016 019c 1D46     		mov	r5, r3
+ 1017 019e D7E90601 		ldrd	r0, [r7, #24]
+ 1018 01a2 47A3     		adr	r3, .L66+48
+ 1019 01a4 D3E90023 		ldrd	r2, [r3]
+ 1020 01a8 FFF7FEFF 		bl	__aeabi_dmul
+ 1021 01ac 0246     		mov	r2, r0
+ 1022 01ae 0B46     		mov	r3, r1
+ 1023 01b0 2046     		mov	r0, r4
+ 1024 01b2 2946     		mov	r1, r5
+ 1025 01b4 FFF7FEFF 		bl	__aeabi_dsub
+ 1026 01b8 0246     		mov	r2, r0
+ 1027 01ba 0B46     		mov	r3, r1
+ 1028 01bc 396C     		ldr	r1, [r7, #64]
+ 1029 01be C1E90023 		strd	r2, [r1]
+ 307:../TSL2561.c  **** 		return(TRUE);
+ 1030              		.loc 1 307 0
+ 1031 01c2 4FF00103 		mov	r3, #1
+ 1032 01c6 5CE0     		b	.L48
+ 1033              	.L63:
+ 308:../TSL2561.c  **** 	}
+ 309:../TSL2561.c  **** 
+ 310:../TSL2561.c  **** 	if (ratio < 0.80)
+ 1034              		.loc 1 310 0
+ 1035 01c8 D7E90401 		ldrd	r0, [r7, #16]
+ 1036 01cc 3EA3     		adr	r3, .L66+56
+ 1037 01ce D3E90023 		ldrd	r2, [r3]
+ 1038 01d2 FFF7FEFF 		bl	__aeabi_dcmplt
+ 1039 01d6 0346     		mov	r3, r0
+ 1040 01d8 002B     		cmp	r3, #0
+ 1041 01da 1FD0     		beq	.L64
+ 1042              	.L60:
+ 311:../TSL2561.c  **** 	{
+ 312:../TSL2561.c  **** 		*lux = 0.0128 * d0 - 0.0153 * d1;
+ 1043              		.loc 1 312 0
+ 1044 01dc D7E90801 		ldrd	r0, [r7, #32]
+ 1045 01e0 3BA3     		adr	r3, .L66+64
+ 1046 01e2 D3E90023 		ldrd	r2, [r3]
+ 1047 01e6 FFF7FEFF 		bl	__aeabi_dmul
+ 1048 01ea 0246     		mov	r2, r0
+ 1049 01ec 0B46     		mov	r3, r1
+ 1050 01ee 1446     		mov	r4, r2
+ 1051 01f0 1D46     		mov	r5, r3
+ 1052 01f2 D7E90601 		ldrd	r0, [r7, #24]
+ 1053 01f6 38A3     		adr	r3, .L66+72
+ 1054 01f8 D3E90023 		ldrd	r2, [r3]
+ 1055 01fc FFF7FEFF 		bl	__aeabi_dmul
+ 1056 0200 0246     		mov	r2, r0
+ 1057 0202 0B46     		mov	r3, r1
+ 1058 0204 2046     		mov	r0, r4
+ 1059 0206 2946     		mov	r1, r5
+ 1060 0208 FFF7FEFF 		bl	__aeabi_dsub
+ 1061 020c 0246     		mov	r2, r0
+ 1062 020e 0B46     		mov	r3, r1
+ 1063 0210 396C     		ldr	r1, [r7, #64]
+ 1064 0212 C1E90023 		strd	r2, [r1]
+ 313:../TSL2561.c  **** 		return(TRUE);
+ 1065              		.loc 1 313 0
+ 1066 0216 4FF00103 		mov	r3, #1
+ 1067 021a 32E0     		b	.L48
+ 1068              	.L64:
+ 314:../TSL2561.c  **** 	}
+ 315:../TSL2561.c  **** 
+ 316:../TSL2561.c  **** 	if (ratio < 1.30)
+ 1069              		.loc 1 316 0
+ 1070 021c D7E90401 		ldrd	r0, [r7, #16]
+ 1071 0220 2FA3     		adr	r3, .L66+80
+ 1072 0222 D3E90023 		ldrd	r2, [r3]
+ 1073 0226 FFF7FEFF 		bl	__aeabi_dcmplt
+ 1074 022a 0346     		mov	r3, r0
+ 1075 022c 002B     		cmp	r3, #0
+ 1076 022e 1FD0     		beq	.L65
+ 1077              	.L61:
+ 317:../TSL2561.c  **** 	{
+ 318:../TSL2561.c  **** 		*lux = 0.00146 * d0 - 0.00112 * d1;
+ 1078              		.loc 1 318 0
+ 1079 0230 D7E90801 		ldrd	r0, [r7, #32]
+ 1080 0234 2CA3     		adr	r3, .L66+88
+ 1081 0236 D3E90023 		ldrd	r2, [r3]
+ 1082 023a FFF7FEFF 		bl	__aeabi_dmul
+ 1083 023e 0246     		mov	r2, r0
+ 1084 0240 0B46     		mov	r3, r1
+ 1085 0242 1446     		mov	r4, r2
+ 1086 0244 1D46     		mov	r5, r3
+ 1087 0246 D7E90601 		ldrd	r0, [r7, #24]
+ 1088 024a 29A3     		adr	r3, .L66+96
+ 1089 024c D3E90023 		ldrd	r2, [r3]
+ 1090 0250 FFF7FEFF 		bl	__aeabi_dmul
+ 1091 0254 0246     		mov	r2, r0
+ 1092 0256 0B46     		mov	r3, r1
+ 1093 0258 2046     		mov	r0, r4
+ 1094 025a 2946     		mov	r1, r5
+ 1095 025c FFF7FEFF 		bl	__aeabi_dsub
+ 1096 0260 0246     		mov	r2, r0
+ 1097 0262 0B46     		mov	r3, r1
+ 1098 0264 396C     		ldr	r1, [r7, #64]
+ 1099 0266 C1E90023 		strd	r2, [r1]
+ 319:../TSL2561.c  **** 		return(TRUE);
+ 1100              		.loc 1 319 0
+ 1101 026a 4FF00103 		mov	r3, #1
+ 1102 026e 08E0     		b	.L48
+ 1103              	.L65:
+ 320:../TSL2561.c  **** 	}
+ 321:../TSL2561.c  **** 
+ 322:../TSL2561.c  **** 	// if (ratio > 1.30)
+ 323:../TSL2561.c  **** 	*lux = 0.0;
+ 1104              		.loc 1 323 0
+ 1105 0270 396C     		ldr	r1, [r7, #64]
+ 1106 0272 4FF00002 		mov	r2, #0
+ 1107 0276 4FF00003 		mov	r3, #0
+ 1108 027a C1E90023 		strd	r2, [r1]
+ 324:../TSL2561.c  **** 	return(TRUE);
+ 1109              		.loc 1 324 0
+ 1110 027e 4FF00103 		mov	r3, #1
+ 1111              	.L48:
+ 325:../TSL2561.c  **** }
+ 1112              		.loc 1 325 0
+ 1113 0282 1846     		mov	r0, r3
+ 1114 0284 07F12807 		add	r7, r7, #40
+ 1115 0288 BD46     		mov	sp, r7
+ 1116 028a BDE8B083 		pop	{r4, r5, r7, r8, r9, pc}
+ 1117              	.L67:
+ 1118 028e 00BF     		.align	3
+ 1119              	.L66:
+ 1120 0290 00000000 		.word	0
+ 1121 0294 00207940 		.word	1081679872
+ 1122 0298 C58F3177 		.word	1999736773
+ 1123 029c 2D219F3F 		.word	1067393325
+ 1124 02a0 5839B4C8 		.word	-927712936
+ 1125 02a4 76BEAF3F 		.word	1068482166
+ 1126 02a8 66666666 		.word	1717986918
+ 1127 02ac 6666F63F 		.word	1073112678
+ 1128 02b0 85EB51B8 		.word	-1202590843
+ 1129 02b4 1E85E33F 		.word	1071875358
+ 1130 02b8 C7BAB88D 		.word	-1917273401
+ 1131 02bc 06F0963F 		.word	1066856454
+ 1132 02c0 5839B4C8 		.word	-927712936
+ 1133 02c4 76BE9F3F 		.word	1067433590
+ 1134 02c8 9A999999 		.word	-1717986918
+ 1135 02cc 9999E93F 		.word	1072273817
+ 1136 02d0 2D431CEB 		.word	-350469331
+ 1137 02d4 E2368A3F 		.word	1066022626
+ 1138 02d8 4BC8073D 		.word	1023920203
+ 1139 02dc 9B558F3F 		.word	1066358171
+ 1140 02e0 CDCCCCCC 		.word	-858993459
+ 1141 02e4 CCCCF43F 		.word	1073007820
+ 1142 02e8 B2632310 		.word	270754738
+ 1143 02ec AFEB573F 		.word	1062726575
+ 1144 02f0 D2FBC6D7 		.word	-674825262
+ 1145 02f4 9E59523F 		.word	1062361502
+ 1146              		.cfi_endproc
+ 1147              	.LFE132:
+ 1149              		.section	.text.setInterruptControl,"ax",%progbits
+ 1150              		.align	2
+ 1151              		.global	setInterruptControl
+ 1152              		.thumb
+ 1153              		.thumb_func
+ 1155              	setInterruptControl:
+ 1156              	.LFB133:
+ 326:../TSL2561.c  **** 
+ 327:../TSL2561.c  **** int setInterruptControl(unsigned char control, unsigned char persist)
+ 328:../TSL2561.c  **** 	// Sets up interrupt operations
+ 329:../TSL2561.c  **** 	// If control = 0, interrupt output disabled
+ 330:../TSL2561.c  **** 	// If control = 1, use level interrupt, see setInterruptThreshold()
+ 331:../TSL2561.c  **** 	// If persist = 0, every integration cycle generates an interrupt
+ 332:../TSL2561.c  **** 	// If persist = 1, any value outside of threshold generates an interrupt
+ 333:../TSL2561.c  **** 	// If persist = 2 to 15, value must be outside of threshold for 2 to 15 integration cycles
+ 334:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 335:../TSL2561.c  **** 	// (Also see getError() below)
+ 336:../TSL2561.c  **** {
+ 1157              		.loc 1 336 0
+ 1158              		.cfi_startproc
+ 1159              		@ args = 0, pretend = 0, frame = 8
+ 1160              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1161 0000 80B5     		push	{r7, lr}
+ 1162              	.LCFI41:
+ 1163              		.cfi_def_cfa_offset 8
+ 1164              		.cfi_offset 7, -8
+ 1165              		.cfi_offset 14, -4
+ 1166 0002 82B0     		sub	sp, sp, #8
+ 1167              	.LCFI42:
+ 1168              		.cfi_def_cfa_offset 16
+ 1169 0004 00AF     		add	r7, sp, #0
+ 1170              	.LCFI43:
+ 1171              		.cfi_def_cfa_register 7
+ 1172 0006 0246     		mov	r2, r0
+ 1173 0008 0B46     		mov	r3, r1
+ 1174 000a FA71     		strb	r2, [r7, #7]
+ 1175 000c BB71     		strb	r3, [r7, #6]
+ 337:../TSL2561.c  **** 	// Place control and persist bits into proper location in interrupt control register
+ 338:../TSL2561.c  **** 	if (writeByte(TSL2561_REG_INTCTL,((control | 0B00000011) << 4) & (persist | 0B00001111)))
+ 1176              		.loc 1 338 0
+ 1177 000e FB79     		ldrb	r3, [r7, #7]
+ 1178 0010 43F00303 		orr	r3, r3, #3
+ 1179 0014 DBB2     		uxtb	r3, r3
+ 1180 0016 4FEA0313 		lsl	r3, r3, #4
+ 1181 001a DAB2     		uxtb	r2, r3
+ 1182 001c BB79     		ldrb	r3, [r7, #6]
+ 1183 001e 43F00F03 		orr	r3, r3, #15
+ 1184 0022 DBB2     		uxtb	r3, r3
+ 1185 0024 DBB2     		uxtb	r3, r3
+ 1186 0026 1340     		ands	r3, r3, r2
+ 1187 0028 DBB2     		uxtb	r3, r3
+ 1188 002a DBB2     		uxtb	r3, r3
+ 1189 002c 4FF00600 		mov	r0, #6
+ 1190 0030 1946     		mov	r1, r3
+ 1191 0032 FFF7FEFF 		bl	writeByte
+ 1192 0036 0346     		mov	r3, r0
+ 1193 0038 002B     		cmp	r3, #0
+ 1194 003a 02D0     		beq	.L69
+ 339:../TSL2561.c  **** 		return(TRUE);
+ 1195              		.loc 1 339 0
+ 1196 003c 4FF00103 		mov	r3, #1
+ 1197 0040 01E0     		b	.L70
+ 1198              	.L69:
+ 340:../TSL2561.c  **** 
+ 341:../TSL2561.c  **** 	return(FALSE);
+ 1199              		.loc 1 341 0
+ 1200 0042 4FF00003 		mov	r3, #0
+ 1201              	.L70:
+ 342:../TSL2561.c  **** }
+ 1202              		.loc 1 342 0
+ 1203 0046 1846     		mov	r0, r3
+ 1204 0048 07F10807 		add	r7, r7, #8
+ 1205 004c BD46     		mov	sp, r7
+ 1206 004e 80BD     		pop	{r7, pc}
+ 1207              		.cfi_endproc
+ 1208              	.LFE133:
+ 1210              		.section	.text.setInterruptThreshold,"ax",%progbits
+ 1211              		.align	2
+ 1212              		.global	setInterruptThreshold
+ 1213              		.thumb
+ 1214              		.thumb_func
+ 1216              	setInterruptThreshold:
+ 1217              	.LFB134:
+ 343:../TSL2561.c  **** 
+ 344:../TSL2561.c  **** int setInterruptThreshold(unsigned int low, unsigned int high)
+ 345:../TSL2561.c  **** 	// Set interrupt thresholds (channel 0 only)
+ 346:../TSL2561.c  **** 	// low, high: 16-bit threshold values
+ 347:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 348:../TSL2561.c  **** 	// (Also see getError() below)
+ 349:../TSL2561.c  **** {
+ 1218              		.loc 1 349 0
+ 1219              		.cfi_startproc
+ 1220              		@ args = 0, pretend = 0, frame = 8
+ 1221              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1222 0000 80B5     		push	{r7, lr}
+ 1223              	.LCFI44:
+ 1224              		.cfi_def_cfa_offset 8
+ 1225              		.cfi_offset 7, -8
+ 1226              		.cfi_offset 14, -4
+ 1227 0002 82B0     		sub	sp, sp, #8
+ 1228              	.LCFI45:
+ 1229              		.cfi_def_cfa_offset 16
+ 1230 0004 00AF     		add	r7, sp, #0
+ 1231              	.LCFI46:
+ 1232              		.cfi_def_cfa_register 7
+ 1233 0006 7860     		str	r0, [r7, #4]
+ 1234 0008 3960     		str	r1, [r7, #0]
+ 350:../TSL2561.c  **** 	// Write low and high threshold values
+ 351:../TSL2561.c  **** 	if (writeUInt(TSL2561_REG_THRESH_L,low) && writeUInt(TSL2561_REG_THRESH_H,high))
+ 1235              		.loc 1 351 0
+ 1236 000a 4FF00200 		mov	r0, #2
+ 1237 000e 7968     		ldr	r1, [r7, #4]
+ 1238 0010 FFF7FEFF 		bl	writeUInt
+ 1239 0014 0346     		mov	r3, r0
+ 1240 0016 002B     		cmp	r3, #0
+ 1241 0018 0AD0     		beq	.L72
+ 1242              		.loc 1 351 0 is_stmt 0 discriminator 1
+ 1243 001a 4FF00400 		mov	r0, #4
+ 1244 001e 3968     		ldr	r1, [r7, #0]
+ 1245 0020 FFF7FEFF 		bl	writeUInt
+ 1246 0024 0346     		mov	r3, r0
+ 1247 0026 002B     		cmp	r3, #0
+ 1248 0028 02D0     		beq	.L72
+ 352:../TSL2561.c  **** 		return(TRUE);
+ 1249              		.loc 1 352 0 is_stmt 1
+ 1250 002a 4FF00103 		mov	r3, #1
+ 1251 002e 01E0     		b	.L73
+ 1252              	.L72:
+ 353:../TSL2561.c  **** 
+ 354:../TSL2561.c  **** 	return(FALSE);
+ 1253              		.loc 1 354 0
+ 1254 0030 4FF00003 		mov	r3, #0
+ 1255              	.L73:
+ 355:../TSL2561.c  **** }
+ 1256              		.loc 1 355 0
+ 1257 0034 1846     		mov	r0, r3
+ 1258 0036 07F10807 		add	r7, r7, #8
+ 1259 003a BD46     		mov	sp, r7
+ 1260 003c 80BD     		pop	{r7, pc}
+ 1261              		.cfi_endproc
+ 1262              	.LFE134:
+ 1264 003e 00BF     		.section	.text.clearInterrupt,"ax",%progbits
+ 1265              		.align	2
+ 1266              		.global	clearInterrupt
+ 1267              		.thumb
+ 1268              		.thumb_func
+ 1270              	clearInterrupt:
+ 1271              	.LFB135:
+ 356:../TSL2561.c  **** 
+ 357:../TSL2561.c  **** int clearInterrupt(void)
+ 358:../TSL2561.c  **** 	// Clears an active interrupt
+ 359:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 360:../TSL2561.c  **** 	// (Also see getError() below)
+ 361:../TSL2561.c  **** {
+ 1272              		.loc 1 361 0
+ 1273              		.cfi_startproc
+ 1274              		@ args = 0, pretend = 0, frame = 0
+ 1275              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1276              		@ link register save eliminated.
+ 1277 0000 80B4     		push	{r7}
+ 1278              	.LCFI47:
+ 1279              		.cfi_def_cfa_offset 4
+ 1280              		.cfi_offset 7, -4
+ 1281 0002 00AF     		add	r7, sp, #0
+ 1282              	.LCFI48:
+ 1283              		.cfi_def_cfa_register 7
+ 362:../TSL2561.c  **** 	// Set up command byte for interrupt clear
+ 363:../TSL2561.c  **** 	/*Wire.beginTransmission(_i2c_address);
+ 364:../TSL2561.c  **** 	Wire.write(TSL2561_CMD_CLEAR);
+ 365:../TSL2561.c  **** 	_error = Wire.endTransmission();*/
+ 366:../TSL2561.c  **** 	/*if (_error == 0)
+ 367:../TSL2561.c  **** 		return(true);
+ 368:../TSL2561.c  **** 
+ 369:../TSL2561.c  **** 	return(false);*/
+ 370:../TSL2561.c  **** 	return TRUE;
+ 1284              		.loc 1 370 0
+ 1285 0004 4FF00103 		mov	r3, #1
+ 371:../TSL2561.c  **** }
+ 1286              		.loc 1 371 0
+ 1287 0008 1846     		mov	r0, r3
+ 1288 000a BD46     		mov	sp, r7
+ 1289 000c 80BC     		pop	{r7}
+ 1290 000e 7047     		bx	lr
+ 1291              		.cfi_endproc
+ 1292              	.LFE135:
+ 1294              		.section	.text.getID,"ax",%progbits
+ 1295              		.align	2
+ 1296              		.global	getID
+ 1297              		.thumb
+ 1298              		.thumb_func
+ 1300              	getID:
+ 1301              	.LFB136:
+ 372:../TSL2561.c  **** 
+ 373:../TSL2561.c  **** int getID(unsigned char *ID)
+ 374:../TSL2561.c  **** 	// Retrieves part and revision code from TSL2561
+ 375:../TSL2561.c  **** 	// Sets ID to part ID (see datasheet)
+ 376:../TSL2561.c  **** 	// Returns true (1) if successful, false (0) if there was an I2C error
+ 377:../TSL2561.c  **** 	// (Also see getError() below)
+ 378:../TSL2561.c  **** {
+ 1302              		.loc 1 378 0
+ 1303              		.cfi_startproc
+ 1304              		@ args = 0, pretend = 0, frame = 8
+ 1305              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1306 0000 80B5     		push	{r7, lr}
+ 1307              	.LCFI49:
+ 1308              		.cfi_def_cfa_offset 8
+ 1309              		.cfi_offset 7, -8
+ 1310              		.cfi_offset 14, -4
+ 1311 0002 82B0     		sub	sp, sp, #8
+ 1312              	.LCFI50:
+ 1313              		.cfi_def_cfa_offset 16
+ 1314 0004 00AF     		add	r7, sp, #0
+ 1315              	.LCFI51:
+ 1316              		.cfi_def_cfa_register 7
+ 1317 0006 7860     		str	r0, [r7, #4]
+ 379:../TSL2561.c  **** 	// Get ID byte from ID register
+ 380:../TSL2561.c  **** 	if (readByte(TSL2561_REG_ID,ID))
+ 1318              		.loc 1 380 0
+ 1319 0008 4FF00A00 		mov	r0, #10
+ 1320 000c 7968     		ldr	r1, [r7, #4]
+ 1321 000e FFF7FEFF 		bl	readByte
+ 1322 0012 0346     		mov	r3, r0
+ 1323 0014 002B     		cmp	r3, #0
+ 1324 0016 02D0     		beq	.L77
+ 381:../TSL2561.c  **** 		return(TRUE);
+ 1325              		.loc 1 381 0
+ 1326 0018 4FF00103 		mov	r3, #1
+ 1327 001c 01E0     		b	.L78
+ 1328              	.L77:
+ 382:../TSL2561.c  **** 
+ 383:../TSL2561.c  **** 	return(FALSE);
+ 1329              		.loc 1 383 0
+ 1330 001e 4FF00003 		mov	r3, #0
+ 1331              	.L78:
+ 384:../TSL2561.c  **** }
+ 1332              		.loc 1 384 0
+ 1333 0022 1846     		mov	r0, r3
+ 1334 0024 07F10807 		add	r7, r7, #8
+ 1335 0028 BD46     		mov	sp, r7
+ 1336 002a 80BD     		pop	{r7, pc}
+ 1337              		.cfi_endproc
+ 1338              	.LFE136:
+ 1340              		.section	.text.getError,"ax",%progbits
+ 1341              		.align	2
+ 1342              		.global	getError
+ 1343              		.thumb
+ 1344              		.thumb_func
+ 1346              	getError:
+ 1347              	.LFB137:
+ 385:../TSL2561.c  **** 
+ 386:../TSL2561.c  **** int getError(void)
+ 387:../TSL2561.c  **** 	// If any library command fails, you can retrieve an extended
+ 388:../TSL2561.c  **** 	// error code using this command. Errors are from the wire library:
+ 389:../TSL2561.c  **** 	// 0 = Success
+ 390:../TSL2561.c  **** 	// 1 = Data too long to fit in transmit buffer
+ 391:../TSL2561.c  **** 	// 2 = Received NACK on transmit of address
+ 392:../TSL2561.c  **** 	// 3 = Received NACK on transmit of data
+ 393:../TSL2561.c  **** 	// 4 = Other error
+ 394:../TSL2561.c  **** {
+ 1348              		.loc 1 394 0
+ 1349              		.cfi_startproc
+ 1350              		@ args = 0, pretend = 0, frame = 0
+ 1351              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1352              		@ link register save eliminated.
+ 1353 0000 80B4     		push	{r7}
+ 1354              	.LCFI52:
+ 1355              		.cfi_def_cfa_offset 4
+ 1356              		.cfi_offset 7, -4
+ 1357 0002 00AF     		add	r7, sp, #0
+ 1358              	.LCFI53:
+ 1359              		.cfi_def_cfa_register 7
+ 395:../TSL2561.c  **** 	return(_error);
+ 1360              		.loc 1 395 0
+ 1361 0004 40F20003 		movw	r3, #:lower16:_error
+ 1362 0008 C0F20003 		movt	r3, #:upper16:_error
+ 1363 000c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 396:../TSL2561.c  **** }
+ 1364              		.loc 1 396 0
+ 1365 000e 1846     		mov	r0, r3
+ 1366 0010 BD46     		mov	sp, r7
+ 1367 0012 80BC     		pop	{r7}
+ 1368 0014 7047     		bx	lr
+ 1369              		.cfi_endproc
+ 1370              	.LFE137:
+ 1372 0016 00BF     		.section	.text.readByte,"ax",%progbits
+ 1373              		.align	2
+ 1374              		.global	readByte
+ 1375              		.thumb
+ 1376              		.thumb_func
+ 1378              	readByte:
+ 1379              	.LFB138:
+ 397:../TSL2561.c  **** 
+ 398:../TSL2561.c  **** int readByte(unsigned char address, unsigned char *value)
+ 399:../TSL2561.c  **** {
+ 1380              		.loc 1 399 0
+ 1381              		.cfi_startproc
+ 1382              		@ args = 0, pretend = 0, frame = 40
+ 1383              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1384 0000 80B5     		push	{r7, lr}
+ 1385              	.LCFI54:
+ 1386              		.cfi_def_cfa_offset 8
+ 1387              		.cfi_offset 7, -8
+ 1388              		.cfi_offset 14, -4
+ 1389 0002 8AB0     		sub	sp, sp, #40
+ 1390              	.LCFI55:
+ 1391              		.cfi_def_cfa_offset 48
+ 1392 0004 00AF     		add	r7, sp, #0
+ 1393              	.LCFI56:
+ 1394              		.cfi_def_cfa_register 7
+ 1395 0006 0346     		mov	r3, r0
+ 1396 0008 3960     		str	r1, [r7, #0]
+ 1397 000a FB71     		strb	r3, [r7, #7]
+ 400:../TSL2561.c  **** 	I2C001_DataType data1;
+ 401:../TSL2561.c  **** 	data1.Data1.TDF_Type = I2C_TDF_MStart;
+ 1398              		.loc 1 401 0
+ 1399 000c 4FF00403 		mov	r3, #4
+ 1400 0010 7B77     		strb	r3, [r7, #29]
+ 402:../TSL2561.c  **** 	data1.Data1.Data = ((_i2c_address<<1) | I2C_WRITE);
+ 1401              		.loc 1 402 0
+ 1402 0012 40F20003 		movw	r3, #:lower16:_i2c_address
+ 1403 0016 C0F20003 		movt	r3, #:upper16:_i2c_address
+ 1404 001a 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1405 001c 4FEA4303 		lsl	r3, r3, #1
+ 1406 0020 DBB2     		uxtb	r3, r3
+ 1407 0022 3B77     		strb	r3, [r7, #28]
+ 403:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data1);/*);*/
+ 1408              		.loc 1 403 0
+ 1409 0024 07F11C03 		add	r3, r7, #28
+ 1410 0028 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1411 002c C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1412 0030 1946     		mov	r1, r3
+ 1413 0032 FFF7FEFF 		bl	I2C001_WriteData
+ 404:../TSL2561.c  **** 
+ 405:../TSL2561.c  **** 	delay2(DELAY*10);
+ 1414              		.loc 1 405 0
+ 1415 0036 42F6E060 		movw	r0, #12000
+ 1416 003a FFF7FEFF 		bl	delay2
+ 406:../TSL2561.c  **** 
+ 407:../TSL2561.c  **** 	I2C001_DataType data2;
+ 408:../TSL2561.c  **** 	data2.Data1.TDF_Type = I2C_TDF_MTxData;
+ 1417              		.loc 1 408 0
+ 1418 003e 4FF00003 		mov	r3, #0
+ 1419 0042 7B76     		strb	r3, [r7, #25]
+ 409:../TSL2561.c  **** 	data2.Data1.Data = ((address & 0x0F) | TSL2561_CMD);
+ 1420              		.loc 1 409 0
+ 1421 0044 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 1422 0046 03F00F03 		and	r3, r3, #15
+ 1423 004a DBB2     		uxtb	r3, r3
+ 1424 004c 63F07F03 		orn	r3, r3, #127
+ 1425 0050 DBB2     		uxtb	r3, r3
+ 1426 0052 DBB2     		uxtb	r3, r3
+ 1427 0054 3B76     		strb	r3, [r7, #24]
+ 410:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data2);/*);*/
+ 1428              		.loc 1 410 0
+ 1429 0056 07F11803 		add	r3, r7, #24
+ 1430 005a 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1431 005e C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1432 0062 1946     		mov	r1, r3
+ 1433 0064 FFF7FEFF 		bl	I2C001_WriteData
+ 411:../TSL2561.c  **** 
+ 412:../TSL2561.c  **** 	delay2(DELAY*10);
+ 1434              		.loc 1 412 0
+ 1435 0068 42F6E060 		movw	r0, #12000
+ 1436 006c FFF7FEFF 		bl	delay2
+ 413:../TSL2561.c  **** 
+ 414:../TSL2561.c  **** 	//delay2(15000);
+ 415:../TSL2561.c  **** 	I2C001_DataType data3;
+ 416:../TSL2561.c  **** 	data3.Data1.TDF_Type = I2C_TDF_MRStart;
+ 1437              		.loc 1 416 0
+ 1438 0070 4FF00503 		mov	r3, #5
+ 1439 0074 7B75     		strb	r3, [r7, #21]
+ 417:../TSL2561.c  **** 	data3.Data1.Data = ((_i2c_address<<1) | I2C_READ);
+ 1440              		.loc 1 417 0
+ 1441 0076 40F20003 		movw	r3, #:lower16:_i2c_address
+ 1442 007a C0F20003 		movt	r3, #:upper16:_i2c_address
+ 1443 007e 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1444 0080 4FEA4303 		lsl	r3, r3, #1
+ 1445 0084 DBB2     		uxtb	r3, r3
+ 1446 0086 43F00103 		orr	r3, r3, #1
+ 1447 008a DBB2     		uxtb	r3, r3
+ 1448 008c 3B75     		strb	r3, [r7, #20]
+ 418:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data3);/*);*/
+ 1449              		.loc 1 418 0
+ 1450 008e 07F11403 		add	r3, r7, #20
+ 1451 0092 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1452 0096 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1453 009a 1946     		mov	r1, r3
+ 1454 009c FFF7FEFF 		bl	I2C001_WriteData
+ 419:../TSL2561.c  **** 
+ 420:../TSL2561.c  **** 	delay2(DELAY*10);
+ 1455              		.loc 1 420 0
+ 1456 00a0 42F6E060 		movw	r0, #12000
+ 1457 00a4 FFF7FEFF 		bl	delay2
+ 421:../TSL2561.c  **** 
+ 422:../TSL2561.c  **** 
+ 423:../TSL2561.c  **** 	I2C001_DataType data4;
+ 424:../TSL2561.c  **** 	data4.Data1.TDF_Type = I2C_TDF_MRxAck1;
+ 1458              		.loc 1 424 0
+ 1459 00a8 4FF00303 		mov	r3, #3
+ 1460 00ac 7B74     		strb	r3, [r7, #17]
+ 425:../TSL2561.c  **** 	data4.Data1.Data = ubyteFF;
+ 1461              		.loc 1 425 0
+ 1462 00ae 4FF0FF03 		mov	r3, #255
+ 1463 00b2 3B74     		strb	r3, [r7, #16]
+ 426:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data4);/*);*/
+ 1464              		.loc 1 426 0
+ 1465 00b4 07F11003 		add	r3, r7, #16
+ 1466 00b8 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1467 00bc C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1468 00c0 1946     		mov	r1, r3
+ 1469 00c2 FFF7FEFF 		bl	I2C001_WriteData
+ 427:../TSL2561.c  **** 
+ 428:../TSL2561.c  **** 	delay2(DELAY);
+ 1470              		.loc 1 428 0
+ 1471 00c6 4FF49660 		mov	r0, #1200
+ 1472 00ca FFF7FEFF 		bl	delay2
+ 429:../TSL2561.c  **** 
+ 430:../TSL2561.c  **** 	I2C001_DataType data5;
+ 431:../TSL2561.c  **** 	data5.Data1.TDF_Type = I2C_TDF_MStop;
+ 1473              		.loc 1 431 0
+ 1474 00ce 4FF00603 		mov	r3, #6
+ 1475 00d2 7B73     		strb	r3, [r7, #13]
+ 432:../TSL2561.c  **** 	data5.Data1.Data = ubyteFF;
+ 1476              		.loc 1 432 0
+ 1477 00d4 4FF0FF03 		mov	r3, #255
+ 1478 00d8 3B73     		strb	r3, [r7, #12]
+ 433:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data5);/*);*/
+ 1479              		.loc 1 433 0
+ 1480 00da 07F10C03 		add	r3, r7, #12
+ 1481 00de 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1482 00e2 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1483 00e6 1946     		mov	r1, r3
+ 1484 00e8 FFF7FEFF 		bl	I2C001_WriteData
+ 434:../TSL2561.c  **** 
+ 435:../TSL2561.c  **** 	int k = 0;
+ 1485              		.loc 1 435 0
+ 1486 00ec 4FF00003 		mov	r3, #0
+ 1487 00f0 7B62     		str	r3, [r7, #36]
+ 436:../TSL2561.c  **** 	while(0 == received1){k++; if(k > 4000) break; }
+ 1488              		.loc 1 436 0
+ 1489 00f2 07E0     		b	.L82
+ 1490              	.L84:
+ 1491              		.loc 1 436 0 is_stmt 0 discriminator 2
+ 1492 00f4 7B6A     		ldr	r3, [r7, #36]
+ 1493 00f6 03F10103 		add	r3, r3, #1
+ 1494 00fa 7B62     		str	r3, [r7, #36]
+ 1495 00fc 7B6A     		ldr	r3, [r7, #36]
+ 1496 00fe B3F57A6F 		cmp	r3, #4000
+ 1497 0102 07DC     		bgt	.L86
+ 1498              	.L82:
+ 1499              		.loc 1 436 0 discriminator 1
+ 1500 0104 40F20003 		movw	r3, #:lower16:received1
+ 1501 0108 C0F20003 		movt	r3, #:upper16:received1
+ 1502 010c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1503 010e 002B     		cmp	r3, #0
+ 1504 0110 F0D0     		beq	.L84
+ 1505 0112 00E0     		b	.L83
+ 1506              	.L86:
+ 1507              		.loc 1 436 0
+ 1508 0114 00BF     		nop
+ 1509              	.L83:
+ 437:../TSL2561.c  **** 	received1 = 0;
+ 1510              		.loc 1 437 0 is_stmt 1
+ 1511 0116 40F20003 		movw	r3, #:lower16:received1
+ 1512 011a C0F20003 		movt	r3, #:upper16:received1
+ 1513 011e 4FF00002 		mov	r2, #0
+ 1514 0122 1A70     		strb	r2, [r3, #0]
+ 438:../TSL2561.c  **** 	delay2(DELAY*10);
+ 1515              		.loc 1 438 0
+ 1516 0124 42F6E060 		movw	r0, #12000
+ 1517 0128 FFF7FEFF 		bl	delay2
+ 439:../TSL2561.c  **** 	int j = USIC_GetRxFIFOFillingLevel(I2C001_Handle2.I2CRegs);
+ 1518              		.loc 1 439 0
+ 1519 012c 40F20003 		movw	r3, #:lower16:I2C001_Handle2
+ 1520 0130 C0F20003 		movt	r3, #:upper16:I2C001_Handle2
+ 1521 0134 5B68     		ldr	r3, [r3, #4]
+ 1522 0136 D3F81431 		ldr	r3, [r3, #276]
+ 1523 013a 03F4FE03 		and	r3, r3, #8323072
+ 1524 013e 4FEA1343 		lsr	r3, r3, #16
+ 1525 0142 3B62     		str	r3, [r7, #32]
+ 440:../TSL2561.c  **** 
+ 441:../TSL2561.c  **** 	*value = (uint8_t)DataReceive11;
+ 1526              		.loc 1 441 0
+ 1527 0144 40F20003 		movw	r3, #:lower16:DataReceive11
+ 1528 0148 C0F20003 		movt	r3, #:upper16:DataReceive11
+ 1529 014c 1B88     		ldrh	r3, [r3, #0]
+ 1530 014e DAB2     		uxtb	r2, r3
+ 1531 0150 3B68     		ldr	r3, [r7, #0]
+ 1532 0152 1A70     		strb	r2, [r3, #0]
+ 442:../TSL2561.c  **** 
+ 443:../TSL2561.c  **** 	luminosity = (uint8_t)DataReceive11;
+ 1533              		.loc 1 443 0
+ 1534 0154 40F20003 		movw	r3, #:lower16:DataReceive11
+ 1535 0158 C0F20003 		movt	r3, #:upper16:DataReceive11
+ 1536 015c 1B88     		ldrh	r3, [r3, #0]
+ 1537 015e DBB2     		uxtb	r3, r3
+ 1538 0160 1846     		mov	r0, r3
+ 1539 0162 FFF7FEFF 		bl	__aeabi_ui2d
+ 1540 0166 40F20003 		movw	r3, #:lower16:luminosity
+ 1541 016a C0F20003 		movt	r3, #:upper16:luminosity
+ 1542 016e C3E90001 		strd	r0, [r3]
+ 444:../TSL2561.c  **** 
+ 445:../TSL2561.c  **** 	return TRUE;
+ 1543              		.loc 1 445 0
+ 1544 0172 4FF00103 		mov	r3, #1
+ 446:../TSL2561.c  **** }
+ 1545              		.loc 1 446 0
+ 1546 0176 1846     		mov	r0, r3
+ 1547 0178 07F12807 		add	r7, r7, #40
+ 1548 017c BD46     		mov	sp, r7
+ 1549 017e 80BD     		pop	{r7, pc}
+ 1550              		.cfi_endproc
+ 1551              	.LFE138:
+ 1553              		.section	.text.writeByte,"ax",%progbits
+ 1554              		.align	2
+ 1555              		.global	writeByte
+ 1556              		.thumb
+ 1557              		.thumb_func
+ 1559              	writeByte:
+ 1560              	.LFB139:
+ 447:../TSL2561.c  **** 
+ 448:../TSL2561.c  **** int writeByte(unsigned char address, unsigned char value)
+ 449:../TSL2561.c  **** {
+ 1561              		.loc 1 449 0
+ 1562              		.cfi_startproc
+ 1563              		@ args = 0, pretend = 0, frame = 24
+ 1564              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1565 0000 80B5     		push	{r7, lr}
+ 1566              	.LCFI57:
+ 1567              		.cfi_def_cfa_offset 8
+ 1568              		.cfi_offset 7, -8
+ 1569              		.cfi_offset 14, -4
+ 1570 0002 86B0     		sub	sp, sp, #24
+ 1571              	.LCFI58:
+ 1572              		.cfi_def_cfa_offset 32
+ 1573 0004 00AF     		add	r7, sp, #0
+ 1574              	.LCFI59:
+ 1575              		.cfi_def_cfa_register 7
+ 1576 0006 0246     		mov	r2, r0
+ 1577 0008 0B46     		mov	r3, r1
+ 1578 000a FA71     		strb	r2, [r7, #7]
+ 1579 000c BB71     		strb	r3, [r7, #6]
+ 450:../TSL2561.c  **** 	uint8_t c = (_i2c_address<<1);
+ 1580              		.loc 1 450 0
+ 1581 000e 40F20003 		movw	r3, #:lower16:_i2c_address
+ 1582 0012 C0F20003 		movt	r3, #:upper16:_i2c_address
+ 1583 0016 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1584 0018 4FEA4303 		lsl	r3, r3, #1
+ 1585 001c FB75     		strb	r3, [r7, #23]
+ 451:../TSL2561.c  **** 	I2C001_DataType data1;
+ 452:../TSL2561.c  **** 	data1.Data1.TDF_Type = I2C_TDF_MStart;
+ 1586              		.loc 1 452 0
+ 1587 001e 4FF00403 		mov	r3, #4
+ 1588 0022 7B75     		strb	r3, [r7, #21]
+ 453:../TSL2561.c  **** 	data1.Data1.Data = (c | I2C_WRITE);
+ 1589              		.loc 1 453 0
+ 1590 0024 FB7D     		ldrb	r3, [r7, #23]
+ 1591 0026 3B75     		strb	r3, [r7, #20]
+ 454:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data1);/*);*/
+ 1592              		.loc 1 454 0
+ 1593 0028 07F11403 		add	r3, r7, #20
+ 1594 002c 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1595 0030 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1596 0034 1946     		mov	r1, r3
+ 1597 0036 FFF7FEFF 		bl	I2C001_WriteData
+ 455:../TSL2561.c  **** 
+ 456:../TSL2561.c  **** 	delay2(DELAY);
+ 1598              		.loc 1 456 0
+ 1599 003a 4FF49660 		mov	r0, #1200
+ 1600 003e FFF7FEFF 		bl	delay2
+ 457:../TSL2561.c  **** 
+ 458:../TSL2561.c  **** 	I2C001_DataType data2;
+ 459:../TSL2561.c  **** 	data2.Data1.TDF_Type = I2C_TDF_MTxData;
+ 1601              		.loc 1 459 0
+ 1602 0042 4FF00003 		mov	r3, #0
+ 1603 0046 7B74     		strb	r3, [r7, #17]
+ 460:../TSL2561.c  **** 	data2.Data1.Data = ((address & 0x0F) | TSL2561_CMD);
+ 1604              		.loc 1 460 0
+ 1605 0048 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 1606 004a 03F00F03 		and	r3, r3, #15
+ 1607 004e DBB2     		uxtb	r3, r3
+ 1608 0050 63F07F03 		orn	r3, r3, #127
+ 1609 0054 DBB2     		uxtb	r3, r3
+ 1610 0056 DBB2     		uxtb	r3, r3
+ 1611 0058 3B74     		strb	r3, [r7, #16]
+ 461:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data2);/*);*/
+ 1612              		.loc 1 461 0
+ 1613 005a 07F11003 		add	r3, r7, #16
+ 1614 005e 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1615 0062 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1616 0066 1946     		mov	r1, r3
+ 1617 0068 FFF7FEFF 		bl	I2C001_WriteData
+ 462:../TSL2561.c  **** 
+ 463:../TSL2561.c  **** 	delay2(DELAY);
+ 1618              		.loc 1 463 0
+ 1619 006c 4FF49660 		mov	r0, #1200
+ 1620 0070 FFF7FEFF 		bl	delay2
+ 464:../TSL2561.c  **** 
+ 465:../TSL2561.c  **** 	I2C001_DataType data3;
+ 466:../TSL2561.c  **** 	data3.Data1.TDF_Type = I2C_TDF_MTxData;
+ 1621              		.loc 1 466 0
+ 1622 0074 4FF00003 		mov	r3, #0
+ 1623 0078 7B73     		strb	r3, [r7, #13]
+ 467:../TSL2561.c  **** 	data3.Data1.Data = value;
+ 1624              		.loc 1 467 0
+ 1625 007a BB79     		ldrb	r3, [r7, #6]
+ 1626 007c 3B73     		strb	r3, [r7, #12]
+ 468:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data3);/*);*/
+ 1627              		.loc 1 468 0
+ 1628 007e 07F10C03 		add	r3, r7, #12
+ 1629 0082 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1630 0086 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1631 008a 1946     		mov	r1, r3
+ 1632 008c FFF7FEFF 		bl	I2C001_WriteData
+ 469:../TSL2561.c  **** 
+ 470:../TSL2561.c  **** 	delay2(DELAY);
+ 1633              		.loc 1 470 0
+ 1634 0090 4FF49660 		mov	r0, #1200
+ 1635 0094 FFF7FEFF 		bl	delay2
+ 471:../TSL2561.c  **** 
+ 472:../TSL2561.c  **** 	I2C001_DataType data4;
+ 473:../TSL2561.c  **** 	data4.Data1.TDF_Type = I2C_TDF_MStop;
+ 1636              		.loc 1 473 0
+ 1637 0098 4FF00603 		mov	r3, #6
+ 1638 009c 7B72     		strb	r3, [r7, #9]
+ 474:../TSL2561.c  **** 	data4.Data1.Data = ubyteFF;
+ 1639              		.loc 1 474 0
+ 1640 009e 4FF0FF03 		mov	r3, #255
+ 1641 00a2 3B72     		strb	r3, [r7, #8]
+ 475:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data4);/*);*/
+ 1642              		.loc 1 475 0
+ 1643 00a4 07F10803 		add	r3, r7, #8
+ 1644 00a8 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1645 00ac C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1646 00b0 1946     		mov	r1, r3
+ 1647 00b2 FFF7FEFF 		bl	I2C001_WriteData
+ 476:../TSL2561.c  **** 
+ 477:../TSL2561.c  **** 	delay2(DELAY * 100);
+ 1648              		.loc 1 477 0
+ 1649 00b6 4DF2C040 		movw	r0, #54464
+ 1650 00ba C0F20100 		movt	r0, 1
+ 1651 00be FFF7FEFF 		bl	delay2
+ 478:../TSL2561.c  **** 
+ 479:../TSL2561.c  **** 	return TRUE;
+ 1652              		.loc 1 479 0
+ 1653 00c2 4FF00103 		mov	r3, #1
+ 480:../TSL2561.c  **** }
+ 1654              		.loc 1 480 0
+ 1655 00c6 1846     		mov	r0, r3
+ 1656 00c8 07F11807 		add	r7, r7, #24
+ 1657 00cc BD46     		mov	sp, r7
+ 1658 00ce 80BD     		pop	{r7, pc}
+ 1659              		.cfi_endproc
+ 1660              	.LFE139:
+ 1662              		.section	.text.readUInt,"ax",%progbits
+ 1663              		.align	2
+ 1664              		.global	readUInt
+ 1665              		.thumb
+ 1666              		.thumb_func
+ 1668              	readUInt:
+ 1669              	.LFB140:
+ 481:../TSL2561.c  **** 
+ 482:../TSL2561.c  **** int readUInt(unsigned char address, unsigned int *value)
+ 483:../TSL2561.c  **** {
+ 1670              		.loc 1 483 0
+ 1671              		.cfi_startproc
+ 1672              		@ args = 0, pretend = 0, frame = 40
+ 1673              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1674 0000 80B5     		push	{r7, lr}
+ 1675              	.LCFI60:
+ 1676              		.cfi_def_cfa_offset 8
+ 1677              		.cfi_offset 7, -8
+ 1678              		.cfi_offset 14, -4
+ 1679 0002 8AB0     		sub	sp, sp, #40
+ 1680              	.LCFI61:
+ 1681              		.cfi_def_cfa_offset 48
+ 1682 0004 00AF     		add	r7, sp, #0
+ 1683              	.LCFI62:
+ 1684              		.cfi_def_cfa_register 7
+ 1685 0006 0346     		mov	r3, r0
+ 1686 0008 3960     		str	r1, [r7, #0]
+ 1687 000a FB71     		strb	r3, [r7, #7]
+ 484:../TSL2561.c  **** 	char high, low;
+ 485:../TSL2561.c  **** 
+ 486:../TSL2561.c  **** 	int k = 0;
+ 1688              		.loc 1 486 0
+ 1689 000c 4FF00003 		mov	r3, #0
+ 1690 0010 7B62     		str	r3, [r7, #36]
+ 487:../TSL2561.c  **** 
+ 488:../TSL2561.c  **** 	uint16_t buffer = 0;
+ 1691              		.loc 1 488 0
+ 1692 0012 4FF00003 		mov	r3, #0
+ 1693 0016 7B84     		strh	r3, [r7, #34]	@ movhi
+ 489:../TSL2561.c  **** 	uint16_t buffer1 = 0;
+ 1694              		.loc 1 489 0
+ 1695 0018 4FF00003 		mov	r3, #0
+ 1696 001c 3B84     		strh	r3, [r7, #32]	@ movhi
+ 490:../TSL2561.c  **** 
+ 491:../TSL2561.c  **** 
+ 492:../TSL2561.c  **** 	I2C001_DataType data1;
+ 493:../TSL2561.c  **** 	data1.Data1.TDF_Type = I2C_TDF_MStart;
+ 1697              		.loc 1 493 0
+ 1698 001e 4FF00403 		mov	r3, #4
+ 1699 0022 7B77     		strb	r3, [r7, #29]
+ 494:../TSL2561.c  **** 	data1.Data1.Data = ((_i2c_address<<1) | I2C_WRITE);
+ 1700              		.loc 1 494 0
+ 1701 0024 40F20003 		movw	r3, #:lower16:_i2c_address
+ 1702 0028 C0F20003 		movt	r3, #:upper16:_i2c_address
+ 1703 002c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1704 002e 4FEA4303 		lsl	r3, r3, #1
+ 1705 0032 DBB2     		uxtb	r3, r3
+ 1706 0034 3B77     		strb	r3, [r7, #28]
+ 495:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data1);/*);*/
+ 1707              		.loc 1 495 0
+ 1708 0036 07F11C03 		add	r3, r7, #28
+ 1709 003a 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1710 003e C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1711 0042 1946     		mov	r1, r3
+ 1712 0044 FFF7FEFF 		bl	I2C001_WriteData
+ 496:../TSL2561.c  **** 
+ 497:../TSL2561.c  **** 	delay2(DELAY);
+ 1713              		.loc 1 497 0
+ 1714 0048 4FF49660 		mov	r0, #1200
+ 1715 004c FFF7FEFF 		bl	delay2
+ 498:../TSL2561.c  **** 
+ 499:../TSL2561.c  **** 	I2C001_DataType data2;
+ 500:../TSL2561.c  **** 	data2.Data1.TDF_Type = I2C_TDF_MTxData;
+ 1716              		.loc 1 500 0
+ 1717 0050 4FF00003 		mov	r3, #0
+ 1718 0054 7B76     		strb	r3, [r7, #25]
+ 501:../TSL2561.c  **** 	data2.Data1.Data = ((address & 0x0F) | TSL2561_CMD);
+ 1719              		.loc 1 501 0
+ 1720 0056 FB79     		ldrb	r3, [r7, #7]	@ zero_extendqisi2
+ 1721 0058 03F00F03 		and	r3, r3, #15
+ 1722 005c DBB2     		uxtb	r3, r3
+ 1723 005e 63F07F03 		orn	r3, r3, #127
+ 1724 0062 DBB2     		uxtb	r3, r3
+ 1725 0064 DBB2     		uxtb	r3, r3
+ 1726 0066 3B76     		strb	r3, [r7, #24]
+ 502:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data2);/*);*/
+ 1727              		.loc 1 502 0
+ 1728 0068 07F11803 		add	r3, r7, #24
+ 1729 006c 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1730 0070 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1731 0074 1946     		mov	r1, r3
+ 1732 0076 FFF7FEFF 		bl	I2C001_WriteData
+ 503:../TSL2561.c  **** 	/*{
+ 504:../TSL2561.c  **** 		USIC_FlushTxFIFO(I2CRegs);
+ 505:../TSL2561.c  **** 	}*/
+ 506:../TSL2561.c  **** 	delay2(DELAY);
+ 1733              		.loc 1 506 0
+ 1734 007a 4FF49660 		mov	r0, #1200
+ 1735 007e FFF7FEFF 		bl	delay2
+ 507:../TSL2561.c  **** 
+ 508:../TSL2561.c  **** 	I2C001_DataType data3;
+ 509:../TSL2561.c  **** 	data3.Data1.TDF_Type = I2C_TDF_MRStart;
+ 1736              		.loc 1 509 0
+ 1737 0082 4FF00503 		mov	r3, #5
+ 1738 0086 7B75     		strb	r3, [r7, #21]
+ 510:../TSL2561.c  **** 	data3.Data1.Data = ((_i2c_address<<1) | I2C_READ);
+ 1739              		.loc 1 510 0
+ 1740 0088 40F20003 		movw	r3, #:lower16:_i2c_address
+ 1741 008c C0F20003 		movt	r3, #:upper16:_i2c_address
+ 1742 0090 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1743 0092 4FEA4303 		lsl	r3, r3, #1
+ 1744 0096 DBB2     		uxtb	r3, r3
+ 1745 0098 43F00103 		orr	r3, r3, #1
+ 1746 009c DBB2     		uxtb	r3, r3
+ 1747 009e 3B75     		strb	r3, [r7, #20]
+ 511:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data3);/*);*/
+ 1748              		.loc 1 511 0
+ 1749 00a0 07F11403 		add	r3, r7, #20
+ 1750 00a4 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1751 00a8 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1752 00ac 1946     		mov	r1, r3
+ 1753 00ae FFF7FEFF 		bl	I2C001_WriteData
+ 512:../TSL2561.c  **** 	/*{
+ 513:../TSL2561.c  **** 		USIC_FlushTxFIFO(I2CRegs);
+ 514:../TSL2561.c  **** 	}*/
+ 515:../TSL2561.c  **** 	delay2(DELAY);
+ 1754              		.loc 1 515 0
+ 1755 00b2 4FF49660 		mov	r0, #1200
+ 1756 00b6 FFF7FEFF 		bl	delay2
+ 516:../TSL2561.c  **** 
+ 517:../TSL2561.c  **** 	I2C001_DataType data4;
+ 518:../TSL2561.c  **** 	data4.Data1.TDF_Type = I2C_TDF_MRxAck0;
+ 1757              		.loc 1 518 0
+ 1758 00ba 4FF00203 		mov	r3, #2
+ 1759 00be 7B74     		strb	r3, [r7, #17]
+ 519:../TSL2561.c  **** 	data4.Data1.Data = ubyteFF;
+ 1760              		.loc 1 519 0
+ 1761 00c0 4FF0FF03 		mov	r3, #255
+ 1762 00c4 3B74     		strb	r3, [r7, #16]
+ 520:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data4);/*);*/
+ 1763              		.loc 1 520 0
+ 1764 00c6 07F11003 		add	r3, r7, #16
+ 1765 00ca 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1766 00ce C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1767 00d2 1946     		mov	r1, r3
+ 1768 00d4 FFF7FEFF 		bl	I2C001_WriteData
+ 521:../TSL2561.c  **** 	/*{
+ 522:../TSL2561.c  **** 		USIC_FlushTxFIFO(I2CRegs);
+ 523:../TSL2561.c  **** 	}*/
+ 524:../TSL2561.c  **** 	delay2(DELAY);
+ 1769              		.loc 1 524 0
+ 1770 00d8 4FF49660 		mov	r0, #1200
+ 1771 00dc FFF7FEFF 		bl	delay2
+ 525:../TSL2561.c  **** 
+ 526:../TSL2561.c  **** 	while(0 == received1){ k++; if(k > 4000) break; }
+ 1772              		.loc 1 526 0
+ 1773 00e0 07E0     		b	.L90
+ 1774              	.L92:
+ 1775              		.loc 1 526 0 is_stmt 0 discriminator 2
+ 1776 00e2 7B6A     		ldr	r3, [r7, #36]
+ 1777 00e4 03F10103 		add	r3, r3, #1
+ 1778 00e8 7B62     		str	r3, [r7, #36]
+ 1779 00ea 7B6A     		ldr	r3, [r7, #36]
+ 1780 00ec B3F57A6F 		cmp	r3, #4000
+ 1781 00f0 07DC     		bgt	.L97
+ 1782              	.L90:
+ 1783              		.loc 1 526 0 discriminator 1
+ 1784 00f2 40F20003 		movw	r3, #:lower16:received1
+ 1785 00f6 C0F20003 		movt	r3, #:upper16:received1
+ 1786 00fa 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1787 00fc 002B     		cmp	r3, #0
+ 1788 00fe F0D0     		beq	.L92
+ 1789 0100 00E0     		b	.L91
+ 1790              	.L97:
+ 1791              		.loc 1 526 0
+ 1792 0102 00BF     		nop
+ 1793              	.L91:
+ 527:../TSL2561.c  **** 	received1 = 0;
+ 1794              		.loc 1 527 0 is_stmt 1
+ 1795 0104 40F20003 		movw	r3, #:lower16:received1
+ 1796 0108 C0F20003 		movt	r3, #:upper16:received1
+ 1797 010c 4FF00002 		mov	r2, #0
+ 1798 0110 1A70     		strb	r2, [r3, #0]
+ 528:../TSL2561.c  **** 	k = 0;
+ 1799              		.loc 1 528 0
+ 1800 0112 4FF00003 		mov	r3, #0
+ 1801 0116 7B62     		str	r3, [r7, #36]
+ 529:../TSL2561.c  **** 
+ 530:../TSL2561.c  **** 	buffer = DataReceive11;
+ 1802              		.loc 1 530 0
+ 1803 0118 40F20003 		movw	r3, #:lower16:DataReceive11
+ 1804 011c C0F20003 		movt	r3, #:upper16:DataReceive11
+ 1805 0120 1B88     		ldrh	r3, [r3, #0]	@ movhi
+ 1806 0122 7B84     		strh	r3, [r7, #34]	@ movhi
+ 531:../TSL2561.c  **** 
+ 532:../TSL2561.c  **** 	I2C001_DataType data5;
+ 533:../TSL2561.c  **** 	data5.Data1.TDF_Type = I2C_TDF_MRxAck1;
+ 1807              		.loc 1 533 0
+ 1808 0124 4FF00303 		mov	r3, #3
+ 1809 0128 7B73     		strb	r3, [r7, #13]
+ 534:../TSL2561.c  **** 	data5.Data1.Data = ubyteFF;
+ 1810              		.loc 1 534 0
+ 1811 012a 4FF0FF03 		mov	r3, #255
+ 1812 012e 3B73     		strb	r3, [r7, #12]
+ 535:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data5);/*);*/
+ 1813              		.loc 1 535 0
+ 1814 0130 07F10C03 		add	r3, r7, #12
+ 1815 0134 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1816 0138 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1817 013c 1946     		mov	r1, r3
+ 1818 013e FFF7FEFF 		bl	I2C001_WriteData
+ 536:../TSL2561.c  **** 	/*{
+ 537:../TSL2561.c  **** 		USIC_FlushTxFIFO(I2CRegs);
+ 538:../TSL2561.c  **** 	}*/
+ 539:../TSL2561.c  **** 	delay2(DELAY);
+ 1819              		.loc 1 539 0
+ 1820 0142 4FF49660 		mov	r0, #1200
+ 1821 0146 FFF7FEFF 		bl	delay2
+ 540:../TSL2561.c  **** 
+ 541:../TSL2561.c  **** 	while(0 == received1){ k++; if(k > 4000) break; }
+ 1822              		.loc 1 541 0
+ 1823 014a 07E0     		b	.L93
+ 1824              	.L95:
+ 1825              		.loc 1 541 0 is_stmt 0 discriminator 2
+ 1826 014c 7B6A     		ldr	r3, [r7, #36]
+ 1827 014e 03F10103 		add	r3, r3, #1
+ 1828 0152 7B62     		str	r3, [r7, #36]
+ 1829 0154 7B6A     		ldr	r3, [r7, #36]
+ 1830 0156 B3F57A6F 		cmp	r3, #4000
+ 1831 015a 07DC     		bgt	.L98
+ 1832              	.L93:
+ 1833              		.loc 1 541 0 discriminator 1
+ 1834 015c 40F20003 		movw	r3, #:lower16:received1
+ 1835 0160 C0F20003 		movt	r3, #:upper16:received1
+ 1836 0164 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1837 0166 002B     		cmp	r3, #0
+ 1838 0168 F0D0     		beq	.L95
+ 1839 016a 00E0     		b	.L94
+ 1840              	.L98:
+ 1841              		.loc 1 541 0
+ 1842 016c 00BF     		nop
+ 1843              	.L94:
+ 542:../TSL2561.c  **** 	received1 = 0;
+ 1844              		.loc 1 542 0 is_stmt 1
+ 1845 016e 40F20003 		movw	r3, #:lower16:received1
+ 1846 0172 C0F20003 		movt	r3, #:upper16:received1
+ 1847 0176 4FF00002 		mov	r2, #0
+ 1848 017a 1A70     		strb	r2, [r3, #0]
+ 543:../TSL2561.c  **** 	k = 0;
+ 1849              		.loc 1 543 0
+ 1850 017c 4FF00003 		mov	r3, #0
+ 1851 0180 7B62     		str	r3, [r7, #36]
+ 544:../TSL2561.c  **** 
+ 545:../TSL2561.c  **** 	buffer1 = DataReceive11;
+ 1852              		.loc 1 545 0
+ 1853 0182 40F20003 		movw	r3, #:lower16:DataReceive11
+ 1854 0186 C0F20003 		movt	r3, #:upper16:DataReceive11
+ 1855 018a 1B88     		ldrh	r3, [r3, #0]	@ movhi
+ 1856 018c 3B84     		strh	r3, [r7, #32]	@ movhi
+ 546:../TSL2561.c  **** 
+ 547:../TSL2561.c  **** 	I2C001_DataType data6;
+ 548:../TSL2561.c  **** 	data6.Data1.TDF_Type = I2C_TDF_MStop;
+ 1857              		.loc 1 548 0
+ 1858 018e 4FF00603 		mov	r3, #6
+ 1859 0192 7B72     		strb	r3, [r7, #9]
+ 549:../TSL2561.c  **** 	data6.Data1.Data = ubyteFF;
+ 1860              		.loc 1 549 0
+ 1861 0194 4FF0FF03 		mov	r3, #255
+ 1862 0198 3B72     		strb	r3, [r7, #8]
+ 550:../TSL2561.c  **** 	/*while(!*/I2C001_WriteData(&I2C001_Handle2,&data6);/*);*/
+ 1863              		.loc 1 550 0
+ 1864 019a 07F10803 		add	r3, r7, #8
+ 1865 019e 40F20000 		movw	r0, #:lower16:I2C001_Handle2
+ 1866 01a2 C0F20000 		movt	r0, #:upper16:I2C001_Handle2
+ 1867 01a6 1946     		mov	r1, r3
+ 1868 01a8 FFF7FEFF 		bl	I2C001_WriteData
+ 551:../TSL2561.c  **** 
+ 552:../TSL2561.c  **** 	delay2(DELAY * 100);
+ 1869              		.loc 1 552 0
+ 1870 01ac 4DF2C040 		movw	r0, #54464
+ 1871 01b0 C0F20100 		movt	r0, 1
+ 1872 01b4 FFF7FEFF 		bl	delay2
+ 553:../TSL2561.c  **** 
+ 554:../TSL2561.c  **** 	buffer1 <<= 8;
+ 1873              		.loc 1 554 0
+ 1874 01b8 3B8C     		ldrh	r3, [r7, #32]	@ movhi
+ 1875 01ba 4FEA0323 		lsl	r3, r3, #8
+ 1876 01be 3B84     		strh	r3, [r7, #32]	@ movhi
+ 555:../TSL2561.c  **** 	buffer1 |= buffer;
+ 1877              		.loc 1 555 0
+ 1878 01c0 3A8C     		ldrh	r2, [r7, #32]	@ movhi
+ 1879 01c2 7B8C     		ldrh	r3, [r7, #34]	@ movhi
+ 1880 01c4 1343     		orrs	r3, r3, r2
+ 1881 01c6 3B84     		strh	r3, [r7, #32]	@ movhi
+ 556:../TSL2561.c  **** 
+ 557:../TSL2561.c  **** 	*value = buffer1;
+ 1882              		.loc 1 557 0
+ 1883 01c8 3A8C     		ldrh	r2, [r7, #32]
+ 1884 01ca 3B68     		ldr	r3, [r7, #0]
+ 1885 01cc 1A60     		str	r2, [r3, #0]
+ 558:../TSL2561.c  **** 	luminosity = buffer1;
+ 1886              		.loc 1 558 0
+ 1887 01ce 3B8C     		ldrh	r3, [r7, #32]
+ 1888 01d0 1846     		mov	r0, r3
+ 1889 01d2 FFF7FEFF 		bl	__aeabi_ui2d
+ 1890 01d6 40F20003 		movw	r3, #:lower16:luminosity
+ 1891 01da C0F20003 		movt	r3, #:upper16:luminosity
+ 1892 01de C3E90001 		strd	r0, [r3]
+ 559:../TSL2561.c  **** 
+ 560:../TSL2561.c  **** 	return TRUE;
+ 1893              		.loc 1 560 0
+ 1894 01e2 4FF00103 		mov	r3, #1
+ 561:../TSL2561.c  **** 
+ 562:../TSL2561.c  **** 
+ 563:../TSL2561.c  **** }
+ 1895              		.loc 1 563 0
+ 1896 01e6 1846     		mov	r0, r3
+ 1897 01e8 07F12807 		add	r7, r7, #40
+ 1898 01ec BD46     		mov	sp, r7
+ 1899 01ee 80BD     		pop	{r7, pc}
+ 1900              		.cfi_endproc
+ 1901              	.LFE140:
+ 1903              		.section	.text.writeUInt,"ax",%progbits
+ 1904              		.align	2
+ 1905              		.global	writeUInt
+ 1906              		.thumb
+ 1907              		.thumb_func
+ 1909              	writeUInt:
+ 1910              	.LFB141:
+ 564:../TSL2561.c  **** 
+ 565:../TSL2561.c  **** int writeUInt(unsigned char address, unsigned int value)
+ 566:../TSL2561.c  **** {
+ 1911              		.loc 1 566 0
+ 1912              		.cfi_startproc
+ 1913              		@ args = 0, pretend = 0, frame = 8
+ 1914              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1915 0000 80B5     		push	{r7, lr}
+ 1916              	.LCFI63:
+ 1917              		.cfi_def_cfa_offset 8
+ 1918              		.cfi_offset 7, -8
+ 1919              		.cfi_offset 14, -4
+ 1920 0002 82B0     		sub	sp, sp, #8
+ 1921              	.LCFI64:
+ 1922              		.cfi_def_cfa_offset 16
+ 1923 0004 00AF     		add	r7, sp, #0
+ 1924              	.LCFI65:
+ 1925              		.cfi_def_cfa_register 7
+ 1926 0006 0346     		mov	r3, r0
+ 1927 0008 3960     		str	r1, [r7, #0]
+ 1928 000a FB71     		strb	r3, [r7, #7]
+ 567:../TSL2561.c  **** 	writeByte(address, value); //low byte
+ 1929              		.loc 1 567 0
+ 1930 000c 3B68     		ldr	r3, [r7, #0]
+ 1931 000e DBB2     		uxtb	r3, r3
+ 1932 0010 FA79     		ldrb	r2, [r7, #7]	@ zero_extendqisi2
+ 1933 0012 1046     		mov	r0, r2
+ 1934 0014 1946     		mov	r1, r3
+ 1935 0016 FFF7FEFF 		bl	writeByte
+ 568:../TSL2561.c  **** 
+ 569:../TSL2561.c  **** 	writeByte(address + 1, (value >> 8)); //high byte
+ 1936              		.loc 1 569 0
+ 1937 001a FB79     		ldrb	r3, [r7, #7]
+ 1938 001c 03F10103 		add	r3, r3, #1
+ 1939 0020 DAB2     		uxtb	r2, r3
+ 1940 0022 3B68     		ldr	r3, [r7, #0]
+ 1941 0024 4FEA1323 		lsr	r3, r3, #8
+ 1942 0028 DBB2     		uxtb	r3, r3
+ 1943 002a 1046     		mov	r0, r2
+ 1944 002c 1946     		mov	r1, r3
+ 1945 002e FFF7FEFF 		bl	writeByte
+ 570:../TSL2561.c  **** 
+ 571:../TSL2561.c  **** 	return TRUE;
+ 1946              		.loc 1 571 0
+ 1947 0032 4FF00103 		mov	r3, #1
+ 572:../TSL2561.c  **** }
+ 1948              		.loc 1 572 0
+ 1949 0036 1846     		mov	r0, r3
+ 1950 0038 07F10807 		add	r7, r7, #8
+ 1951 003c BD46     		mov	sp, r7
+ 1952 003e 80BD     		pop	{r7, pc}
+ 1953              		.cfi_endproc
+ 1954              	.LFE141:
+ 1956              		.section	.text.delay2,"ax",%progbits
+ 1957              		.align	2
+ 1958              		.global	delay2
+ 1959              		.thumb
+ 1960              		.thumb_func
+ 1962              	delay2:
+ 1963              	.LFB142:
+ 573:../TSL2561.c  **** 
+ 574:../TSL2561.c  **** /*void FIFO_Receive_Int_Handler1(void)
+ 575:../TSL2561.c  **** {
+ 576:../TSL2561.c  **** 	DataReceive11 = 0;
+ 577:../TSL2561.c  **** 
+ 578:../TSL2561.c  **** 	I2C001_ReadData(&I2C001_Handle2,&DataReceive11);
+ 579:../TSL2561.c  **** 
+ 580:../TSL2561.c  **** 	received1 = 1;
+ 581:../TSL2561.c  **** }*/
+ 582:../TSL2561.c  **** 
+ 583:../TSL2561.c  **** void delay2(int d)
+ 584:../TSL2561.c  **** {
+ 1964              		.loc 1 584 0
+ 1965              		.cfi_startproc
+ 1966              		@ args = 0, pretend = 0, frame = 16
+ 1967              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1968              		@ link register save eliminated.
+ 1969 0000 80B4     		push	{r7}
+ 1970              	.LCFI66:
+ 1971              		.cfi_def_cfa_offset 4
+ 1972              		.cfi_offset 7, -4
+ 1973 0002 85B0     		sub	sp, sp, #20
+ 1974              	.LCFI67:
+ 1975              		.cfi_def_cfa_offset 24
+ 1976 0004 00AF     		add	r7, sp, #0
+ 1977              	.LCFI68:
+ 1978              		.cfi_def_cfa_register 7
+ 1979 0006 7860     		str	r0, [r7, #4]
+ 1980              	.LBB6:
+ 585:../TSL2561.c  **** 	for(int i = 0; i < d; i++) i++;
+ 1981              		.loc 1 585 0
+ 1982 0008 4FF00003 		mov	r3, #0
+ 1983 000c FB60     		str	r3, [r7, #12]
+ 1984 000e 07E0     		b	.L102
+ 1985              	.L103:
+ 1986              		.loc 1 585 0 is_stmt 0 discriminator 2
+ 1987 0010 FB68     		ldr	r3, [r7, #12]
+ 1988 0012 03F10103 		add	r3, r3, #1
+ 1989 0016 FB60     		str	r3, [r7, #12]
+ 1990 0018 FB68     		ldr	r3, [r7, #12]
+ 1991 001a 03F10103 		add	r3, r3, #1
+ 1992 001e FB60     		str	r3, [r7, #12]
+ 1993              	.L102:
+ 1994              		.loc 1 585 0 discriminator 1
+ 1995 0020 FA68     		ldr	r2, [r7, #12]
+ 1996 0022 7B68     		ldr	r3, [r7, #4]
+ 1997 0024 9A42     		cmp	r2, r3
+ 1998 0026 F3DB     		blt	.L103
+ 1999              	.LBE6:
+ 586:../TSL2561.c  **** }
+ 2000              		.loc 1 586 0 is_stmt 1
+ 2001 0028 07F11407 		add	r7, r7, #20
+ 2002 002c BD46     		mov	sp, r7
+ 2003 002e 80BC     		pop	{r7}
+ 2004 0030 7047     		bx	lr
+ 2005              		.cfi_endproc
+ 2006              	.LFE142:
+ 2008 0032 00BF     		.section	.text.getLuminosity,"ax",%progbits
+ 2009              		.align	2
+ 2010              		.global	getLuminosity
+ 2011              		.thumb
+ 2012              		.thumb_func
+ 2014              	getLuminosity:
+ 2015              	.LFB143:
+ 587:../TSL2561.c  **** 
+ 588:../TSL2561.c  **** double getLuminosity(void)
+ 589:../TSL2561.c  **** {
+ 2016              		.loc 1 589 0
+ 2017              		.cfi_startproc
+ 2018              		@ args = 0, pretend = 0, frame = 0
+ 2019              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2020              		@ link register save eliminated.
+ 2021 0000 80B4     		push	{r7}
+ 2022              	.LCFI69:
+ 2023              		.cfi_def_cfa_offset 4
+ 2024              		.cfi_offset 7, -4
+ 2025 0002 00AF     		add	r7, sp, #0
+ 2026              	.LCFI70:
+ 2027              		.cfi_def_cfa_register 7
+ 590:../TSL2561.c  **** 	return luminosity;
+ 2028              		.loc 1 590 0
+ 2029 0004 40F20003 		movw	r3, #:lower16:luminosity
+ 2030 0008 C0F20003 		movt	r3, #:upper16:luminosity
+ 2031 000c D3E90023 		ldrd	r2, [r3]
+ 591:../TSL2561.c  **** }
+ 2032              		.loc 1 591 0
+ 2033 0010 1046     		mov	r0, r2
+ 2034 0012 1946     		mov	r1, r3
+ 2035 0014 BD46     		mov	sp, r7
+ 2036 0016 80BC     		pop	{r7}
+ 2037 0018 7047     		bx	lr
+ 2038              		.cfi_endproc
+ 2039              	.LFE143:
+ 2041 001a 00BF     		.text
+ 2042              	.Letext0:
+ 2043              		.file 2 "c:\\dave-3.1.10\\arm-gcc\\bin\\../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/i
+ 2044              		.file 3 "C:\\DAVE-3.1.10\\eclipse\\/../CMSIS/Infineon/XMC4500_series/Include/XMC4500.h"
+ 2045              		.file 4 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 2046              		.file 5 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 2047              		.file 6 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 2048              		.file 7 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+ 2049              		.file 8 "C:\\DAVE-3.1.10\\eclipse\\/../CMSIS/Include/core_cm4.h"
+ 2050              		.file 9 "C:\\DAVE3_workspace\\mojWorkspace\\BachelorImproved1\\Dave\\Generated\\inc\\DAVESupport/.
+DEFINED SYMBOLS
+                            *ABS*:00000000 TSL2561.c
+                            *COM*:00000008 luminosity
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:25     .bss:00000000 DataReceive11
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:22     .bss:00000000 $d
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:30     .bss:00000002 received1
+                            *COM*:00000001 _i2c_address
+                            *COM*:00000001 _error
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:38     .bss:00000004 TimerIdTSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:45     .data:00000000 StatusTimerTSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:42     .data:00000000 $d
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:48     .text.USIC1_0_IRQHandler:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:53     .text.USIC1_0_IRQHandler:00000000 USIC1_0_IRQHandler
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:90     .text.startMeasurementsTSL2561:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:95     .text.startMeasurementsTSL2561:00000000 startMeasurementsTSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:174    .text.timerHandlerReceiveTSL2561:00000000 timerHandlerReceiveTSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:132    .text.stopMeasurementsTSL2561:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:137    .text.stopMeasurementsTSL2561:00000000 stopMeasurementsTSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:169    .text.timerHandlerReceiveTSL2561:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:770    .text.getData:00000000 getData
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:833    .text.getLux:00000000 getLux
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:241    .text.readTSL2561:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:246    .text.readTSL2561:00000000 readTSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:312    .text.SFE_TSL2561:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:317    .text.SFE_TSL2561:00000000 SFE_TSL2561
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:339    .text.begin1:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:344    .text.begin1:00000000 begin1
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:374    .text.begin11:00000000 begin11
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:369    .text.begin11:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:410    .text.setPowerUp:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:415    .text.setPowerUp:00000000 setPowerUp
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1559   .text.writeByte:00000000 writeByte
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:441    .text.setPowerDown:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:446    .text.setPowerDown:00000000 setPowerDown
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:472    .text.setTiming:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:477    .text.setTiming:00000000 setTiming
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1378   .text.readByte:00000000 readByte
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:561    .text.setTiming1:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:566    .text.setTiming1:00000000 setTiming1
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:634    .text.manualStart:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:639    .text.manualStart:00000000 manualStart
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:706    .text.manualStop:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:711    .text.manualStop:00000000 manualStop
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:765    .text.getData:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1668   .text.readUInt:00000000 readUInt
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:828    .text.getLux:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1120   .text.getLux:00000290 $d
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1150   .text.setInterruptControl:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1155   .text.setInterruptControl:00000000 setInterruptControl
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1211   .text.setInterruptThreshold:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1216   .text.setInterruptThreshold:00000000 setInterruptThreshold
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1909   .text.writeUInt:00000000 writeUInt
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1265   .text.clearInterrupt:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1270   .text.clearInterrupt:00000000 clearInterrupt
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1295   .text.getID:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1300   .text.getID:00000000 getID
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1341   .text.getError:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1346   .text.getError:00000000 getError
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1373   .text.readByte:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1962   .text.delay2:00000000 delay2
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1554   .text.writeByte:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1663   .text.readUInt:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1904   .text.writeUInt:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:1957   .text.delay2:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:2009   .text.getLuminosity:00000000 $t
+C:\Users\Mateusz\AppData\Local\Temp\ccxMxtKB.s:2014   .text.getLuminosity:00000000 getLuminosity
+                     .debug_frame:00000010 $d
+                           .group:00000000 wm4.1.35166846b5321d4273ad8c4248893ac3
+                           .group:00000000 wm4.newlib.h.8.a9901dc52d1357e3e94003403d43f8b5
+                           .group:00000000 wm4.features.h.22.b72b3baab2bb2eab3661375590100b6b
+                           .group:00000000 wm4.config.h.193.5fb8ef056cdff92dec3dee9552839d8c
+                           .group:00000000 wm4._ansi.h.23.7aefdac4826acebbfc9f3822a0aeb14c
+                           .group:00000000 wm4.stdint.h.20.54ad762faa59e3c05491630641c8d8bf
+                           .group:00000000 wm4._default_types.h.6.5e12cd604db8ce00b62bb2f02708eaf3
+                           .group:00000000 wm4.lock.h.2.9bc98482741e5e2a9450b12934a684ea
+                           .group:00000000 wm4.stddef.h.349.31f4c5baff3fa2689010b32028da9c47
+                           .group:00000000 wm4.reent.h.16.9e42f0e588b85e70b2bf6572af57ce64
+                           .group:00000000 wm4.stddef.h.187.9e651b6b8b16e149c1353259404973ea
+                           .group:00000000 wm4.string.h.17.f8d12df81104836a3f2a5d589ae830d8
+                           .group:00000000 wm4.XMC4500.h.45.215f4b8c79f46c7645c15373868d08c0
+                           .group:00000000 wm4.core_cm4.h.47.41af406cb4cda82c972f112a9cd0a024
+                           .group:00000000 wm4.core_cmInstr.h.39.3d3d1b4a79aef37532666dc6ee87c6ac
+                           .group:00000000 wm4.core_cm4_simd.h.43.b5d1d38735af6366227b4256d330cf13
+                           .group:00000000 wm4.core_cm4.h.178.e5ef5ce66d198d7f00f9d0076e267c41
+                           .group:00000000 wm4.system_XMC4500.h.29.827f68baa362c84f2abae4ab67dde7c9
+                           .group:00000000 wm4.XMC4500.h.198.8e022f279ff353ed081df898dc7b9cf3
+                           .group:00000000 wm4.stddef.h.40.cf962ebbec441b3ac67502735f0765db
+                           .group:00000000 wm4.types.h.60.e75c47576398c648cdcf9000ace5e3d8
+                           .group:00000000 wm4.MULTIPLEXER.h.46.4a863fbae1c79f0db26da3ce2dc30d02
+                           .group:00000000 wm4.CCU8PWMLIB.h.74.725ec81203769525cc7a424597055f47
+                           .group:00000000 wm4.MOTORLIB.h.62.951091d95913dd2ff36d761323a1771d
+                           .group:00000000 wm4.DBG001.h.116.d6d9e7459a0faa3905c97c1d2edb339d
+                           .group:00000000 wm4.uc_id.h.35.fa57ecd9f559d2767f56c96da2848c12
+                           .group:00000000 wm4.CLK001_Const.h.50.e5e9c2ddc89f4cc9e7b93e9648fa94e4
+                           .group:00000000 wm4.CLK001_Conf.h.81.82a8db895dc146da001475dd68223522
+                           .group:00000000 wm4.Usic.h.58.a3e6728d1d20f5a5e52f483a06098d7b
+                           .group:00000000 wm4.I2C001.h.97.5277d52889d6c741e048ea45ee1277b5
+                           .group:00000000 wm4.I2C001_Conf.h.58.8dc4f48d59c07ab7aabfa000634f20d6
+                           .group:00000000 wm4.IO004.h.53.442ea5eb47ad9eedc675253aa35f3107
+                           .group:00000000 wm4.NVIC002_Conf.h.63.4cb383ec1dc83a7d3971985af232fba2
+                           .group:00000000 wm4.SYSTM001.h.64.6ecb31c49bc3e7691644fdcdfc11b5cd
+                           .group:00000000 wm4.UART001_Conf.h.53.25f1a2c84c9f0e515b40b3ac3580460d
+                           .group:00000000 wm4.math.h.35.cc9264b0ced3bd063c5784e64e89cf51
+                           .group:00000000 wm4.TSL2561.h.18.9618d5d7f1dcc1b3cd41935b7a1e99d8
+
+UNDEFINED SYMBOLS
+I2C001_Handle2
+I2C001_ReadData
+SYSTM001_CreateTimer
+SYSTM001_StartTimer
+SYSTM001_StopTimer
+SYSTM001_DeleteTimer
+gain
+ms
+__aeabi_ui2d
+__aeabi_ddiv
+__aeabi_dmul
+__aeabi_dcmplt
+__aeabi_dsub
+pow
+I2C001_WriteData
